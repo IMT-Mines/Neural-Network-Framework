@@ -1,7 +1,22 @@
 fun main() {
-    val model = NeuralNetwork(learningRate = 0.01)
-    model.addLayer(Layer(nbInputs = 2, nbNeurons = 10, activationFunction = ReLU))
-    model.addLayer(Layer(nbInputs = 10, nbNeurons = 4, activationFunction = Linear))
+    val model = NeuralNetwork(learningRate = 0.1)
+    model.load("model.txt")
+    println(model)
+
+    val input = doubleArrayOf(1.5)
+    val expected = doubleArrayOf(0.5)
+    var output = model.predict(input)
+    var error = model.meanSquaredError(output, expected)
+    println("Input: ${input[0]} -> Output: ${output[0]} : Expected: ${expected[0]} -> Error: $error")
+    println(model.idk(input[0], model.layers[0].neurons[0].weights[0], expected[0]))
+
+
+    model.backpropagation()
+
+    println(model)
+    output = model.predict(input)
+    error = model.meanSquaredError(output, expected)
+    println("Input: ${input[0]} -> Output: ${output[0]} : Expected: ${expected[0]} -> Error: $error")
 
 
     //train(model)
