@@ -1,12 +1,12 @@
-class Layer(nbNeurons: Int, nbInputs: Int, activationFunction: ActivationFunction) {
+class Layer(nbNeurons: Int, nbInputs: Int, activationFunction: ActivationFunction, useBias: Boolean = true) {
 
-    private val neurons: MutableList<Neuron> = mutableListOf()
+    var neurons: Array<Neuron> = Array(nbNeurons) { Neuron(activationFunction) }
 
     init {
-        repeat(nbNeurons) {
-            val neuron = Neuron(activationFunction)
+        for (i in neurons.indices) {
+            val neuron = Neuron(activationFunction, useBias)
             neuron.initialize(nbInputs)
-            neurons.add(neuron)
+            neurons[i] = neuron
         }
     }
 

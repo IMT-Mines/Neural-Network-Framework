@@ -1,38 +1,41 @@
-import kotlin.math.max
-
 fun main() {
-    val inputLayer = Layer(nbInputs = 1, nbNeurons = 3, activationFunction = ReLU)
-    val hiddenLayer = Layer(nbInputs = 3, nbNeurons = 3, activationFunction = ReLU)
-    val outputLayer = Layer(nbInputs = 3, nbNeurons = 1, activationFunction = Linear)
+    val model = NeuralNetwork(learningRate = 0.01)
+    model.addLayer(Layer(nbInputs = 2, nbNeurons = 10, activationFunction = ReLU))
+    model.addLayer(Layer(nbInputs = 10, nbNeurons = 4, activationFunction = Linear))
 
-    val model = NeuralNetwork(listOf(inputLayer, hiddenLayer, outputLayer))
-    train(model)
+
+    //train(model)
 }
 
 
 fun train(model: NeuralNetwork) {
-    val map = IntArray(10) { 0 }
+    val environment = Environment()
 
     var epsilon = 1.0
-    val episode = 100000
+    val episode = 100
     val step = 400
+
+    // get current state
+    val state = environment.getState()
 
     for (i in 0 until episode) {
         for (j in 0 until step) {
 
-            val action = pickAction(epsilon)
-            model.predict(doubleArrayOf(1.0))
-            // Effectuer l'action et obtenir la récompense
-            // Récupérer le nouvel état
+            val action = pickAction(epsilon, model, state)
+            environment.action(action)
+            val reward = environment.getReward()
+            val nextState = environment.getState()
 
             // Masque pour l'erreur ?
+            var mask = DoubleArray(4) { 0.0 }
+            mask[action] = 1.0
 
             // Insert les information dans un batch
 
         }
 
         // Decrease epsilon
-        epsilon = max(0.1, epsilon*0.99)
+        epsilon = Math.max(0.1, epsilon * 0.99)
 
 //        println("--------------------")
 //        println("Reward ")
@@ -40,13 +43,18 @@ fun train(model: NeuralNetwork) {
     }
 }
 
-fun pickAction(epsilon: Double) {
 
+fun pickAction(epsilon: Double, model: NeuralNetwork, currentState: DoubleArray): Int {
     if (Math.random() < epsilon) {
-        // Exploration
+        return (0..3).random()
     } else {
-        // Exploitation
+        val result = model.predict(currentState)
+        return result.indexOfFirst {
+            it == result.max()
+        }
     }
 }
 
+fun trainModel() {
+}
 
