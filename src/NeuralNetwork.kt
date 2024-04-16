@@ -25,15 +25,34 @@ class NeuralNetwork(private var learningRate: Double) {
         return error
     }
 
-    fun idk(input: Double, weight: Double, expected: Double): Double {
-        val val1 = input * 2 * input
-        val val2 = input * 2 * expected
-        return weight - learningRate * (val1 * weight - val2)
+    private fun gradiant(output: Double, currentWeight: Double, expected: Double, weightsPrev: Double, input: Double): Double {
+        return currentWeight - learningRate * input * weightsPrev * (2 * (output - expected))
     }
 
+    /**
+     * Backpropagation algorithm
+     * w0' = w0 - r * a1 * 2 (a0 - y)
+     * w1' = w1 - r * a1 * w0 * 2 (a0 - y)
+     *
+     * where:
+     * - wx is the weight of a neuron
+     * - r is the learning rate
+     * - a0 is the output of the neuron
+     * - a1 is the input of the neuron
+     * - y is the expected output
+     */
     fun backpropagation() {
-        for (i in 0..<500) {
-            layers[0].neurons[0].weights[0] = idk(1.5, layers[0].neurons[0].weights[0], 0.5)
+        for (i in 0..<10) {
+            var weightsPrev = 1.0
+            val output = predict(doubleArrayOf(1.5))
+            for (layer in layers.reversed()) {
+                if(layer != layers.last()) {
+                    weightsPrev *= layer.neurons[0].weights[0]
+                }
+                for (neuron in layer.neurons) {
+                    neuron.weights[0] = gradiant(output[0], neuron.weights[0], 0.5, weightsPrev, 1.5)
+                }
+            }
         }
     }
 
@@ -48,7 +67,7 @@ class NeuralNetwork(private var learningRate: Double) {
             val lineWeights = line.split(" ").subList(0, nbNeurons * nbInputs)
             val weights = lineWeights.map { it.toDouble() }.toDoubleArray()
             for (neuron in layer.neurons) {
-              neuron.weights = weights
+                neuron.weights = weights
             }
             layers.add(layer)
             line = bufferedReader.readLine()

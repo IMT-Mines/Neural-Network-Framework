@@ -8,7 +8,6 @@ fun main() {
     var output = model.predict(input)
     var error = model.meanSquaredError(output, expected)
     println("Input: ${input[0]} -> Output: ${output[0]} : Expected: ${expected[0]} -> Error: $error")
-    println(model.idk(input[0], model.layers[0].neurons[0].weights[0], expected[0]))
 
 
     model.backpropagation()
