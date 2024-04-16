@@ -3,7 +3,7 @@ import kotlin.math.pow
 
 class NeuralNetwork(private var learningRate: Double) {
 
-    val layers = mutableListOf<Layer>()
+    private val layers = mutableListOf<Layer>()
 
     fun predict(inputs: DoubleArray): DoubleArray {
         var outputs = inputs
@@ -25,12 +25,8 @@ class NeuralNetwork(private var learningRate: Double) {
         return error
     }
 
-    private fun gradiant(output: Double, currentWeight: Double, expected: Double, weightsPrev: Double, input: Double): Double {
-        return currentWeight - learningRate * input * weightsPrev * (2 * (output - expected))
-    }
-
     /**
-     * Backpropagation algorithm
+     * Compute the gradiant of the weights
      * w0' = w0 - r * a1 * 2 (a0 - y)
      * w1' = w1 - r * a1 * w0 * 2 (a0 - y)
      *
@@ -41,18 +37,42 @@ class NeuralNetwork(private var learningRate: Double) {
      * - a1 is the input of the neuron
      * - y is the expected output
      */
+    private fun gradiant(
+        output: Double,
+        currentWeight: Double,
+        expected: Double,
+        weightsPrev: Double,
+        input: Double
+    ): Double {
+        println("w0 = $currentWeight - r * $input * $weightsPrev * 2($output - $expected)")
+        return currentWeight - learningRate * input * weightsPrev * 2 * (output - expected)
+    }
+
+
     fun backpropagation() {
-        for (i in 0..<10) {
-            var weightsPrev = 1.0
-            val output = predict(doubleArrayOf(1.5))
-            for (layer in layers.reversed()) {
-                if(layer != layers.last()) {
-                    weightsPrev *= layer.neurons[0].weights[0]
-                }
+        repeat(5) {
+            // var weightsPrev = 1.0
+            // reset neurons backpropagation
+            for (layer in layers) {
                 for (neuron in layer.neurons) {
-                    neuron.weights[0] = gradiant(output[0], neuron.weights[0], 0.5, weightsPrev, 1.5)
+                    neuron.backpropagation = 1.0
                 }
             }
+
+            val output = predict(doubleArrayOf(1.5))
+            for (layer in layers.reversed()) {
+                for (neuron in layer.neurons) {
+                    for (i in neuron.weights.indices) {
+                        if (layer != layers.last()) {
+                            neuron.weights[i] = gradiant(output[0], neuron.weights[i], 0.5, 1.0, 1.5)
+                        } else {
+                            neuron.weights[i] = gradiant(output[0], neuron.weights[i], 0.5, neuron.backpropagation, 1.5)
+                        }
+                        neuron.backpropagation *= neuron.weights[i]
+                    }
+                }
+            }
+            println("==========================")
         }
     }
 
@@ -79,7 +99,7 @@ class NeuralNetwork(private var learningRate: Double) {
         val file = File(path)
         val bufferWriter = file.bufferedWriter()
         for (layer in layers.reversed()) {
-            bufferWriter.write("${layer.neurons[0].weights.size} ${layer.neurons.size}\n")
+            bufferWriter.write("${layer.neurons.size} ${layer.neurons[0].weights.size}\n")
             for (neuron in layer.neurons) {
                 for (weight in neuron.weights) {
                     bufferWriter.write("$weight ")

@@ -1,4 +1,4 @@
-class Layer(nbNeurons: Int, nbInputs: Int, activationFunction: ActivationFunction, useBias: Boolean = true) {
+class Layer(nbInputs: Int, nbNeurons: Int, activationFunction: ActivationFunction, useBias: Boolean = true) {
 
     var neurons: Array<Neuron> = Array(nbNeurons) { Neuron(activationFunction) }
 

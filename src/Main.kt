@@ -1,7 +1,11 @@
 fun main() {
     val model = NeuralNetwork(learningRate = 0.1)
+//    model.addLayer(Layer(1, 1, ReLU))
+//    model.save("model.txt")
+//
+
+
     model.load("model.txt")
-    println(model)
 
     val input = doubleArrayOf(1.5)
     val expected = doubleArrayOf(0.5)
@@ -11,7 +15,6 @@ fun main() {
 
 
     model.backpropagation()
-
     println(model)
     output = model.predict(input)
     error = model.meanSquaredError(output, expected)

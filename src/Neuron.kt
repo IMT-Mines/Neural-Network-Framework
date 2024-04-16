@@ -2,6 +2,7 @@ class Neuron(private val activationFunction: ActivationFunction, private val use
 
     lateinit var weights: DoubleArray
     private var bias: Double = 0.0
+    var backpropagation = 1.0
 
     fun initialize(nbInputs: Int) {
         weights = DoubleArray(nbInputs) { Math.random() * 2 - 1 }
