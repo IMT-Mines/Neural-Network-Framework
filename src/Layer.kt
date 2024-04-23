@@ -1,8 +1,12 @@
-class Layer(nbInputs: Int, nbNeurons: Int, activationFunction: ActivationFunction, useBias: Boolean = true) {
+class Layer(
+    nbNeurons: Int,
+    private var activationFunction: ActivationFunction,
+    private var useBias: Boolean = true
+) {
 
     var neurons: Array<Neuron> = Array(nbNeurons) { Neuron(activationFunction) }
 
-    init {
+    fun initialize(nbInputs: Int = 0) {
         for (i in neurons.indices) {
             val neuron = Neuron(activationFunction, useBias)
             neuron.initialize(nbInputs)

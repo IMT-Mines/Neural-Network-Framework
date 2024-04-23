@@ -6,9 +6,12 @@ class NeuralNetwork(private var learningRate: Double) {
     private val layers = mutableListOf<Layer>()
 
     fun predict(inputs: DoubleArray): DoubleArray {
+        for (i in 0..<layers.first().neurons.size) {
+            layers.first().neurons[i].value = inputs[i]
+        }
         var outputs = inputs
-        for (layer in layers) {
-            outputs = layer.compute(outputs)
+        for (i in 1..<layers.size) {
+            outputs = layers[i].compute(outputs)
         }
         return outputs
     }
@@ -17,63 +20,65 @@ class NeuralNetwork(private var learningRate: Double) {
         layers.add(layer)
     }
 
-    fun meanSquaredError(predicted: DoubleArray, expected: DoubleArray): Double {
+    fun initialize() {
+        if (layers.size < 2) throw IllegalArgumentException("The number of layers must be greater than 1")
+        layers.first().initialize()
+        for (i in 1..<layers.size) {
+            layers[i].initialize(layers[i - 1].neurons.size)
+        }
+    }
+
+    fun totalSquaredError(actual: DoubleArray, expected: DoubleArray): Double {
         var error = 0.0
-        for (i in predicted.indices) {
-            error += (expected[i] - predicted[i]).pow(2.0)
+        for (i in actual.indices) {
+            error += 1.0 / 2.0 * (expected[i] - actual[i]).pow(2.0)
+
         }
         return error
     }
 
-    /**
-     * Compute the gradiant of the weights
-     * w0' = w0 - r * a1 * 2 (a0 - y)
-     * w1' = w1 - r * a1 * w0 * 2 (a0 - y)
-     *
-     * where:
-     * - wx is the weight of a neuron
-     * - r is the learning rate
-     * - a0 is the output of the neuron
-     * - a1 is the input of the neuron
-     * - y is the expected output
-     */
-    private fun gradiant(
-        output: Double,
-        currentWeight: Double,
-        expected: Double,
-        weightsPrev: Double,
-        input: Double
-    ): Double {
-        println("w0 = $currentWeight - r * $input * $weightsPrev * 2($output - $expected)")
-        return currentWeight - learningRate * input * weightsPrev * 2 * (output - expected)
-    }
 
+    fun backpropagation(target: DoubleArray, input: DoubleArray) {
+        var error = 1.0
+        var iteration = 0
+        while (error > 0.0001) {
+            //var predict = predict(doubleArrayOf(1.5))
+            for (neuronIndex in layers.last().neurons.indices) {
+                val neuron = layers.last().neurons[neuronIndex]
+                for (weightIndex in neuron.weights.indices) {
+                    val partialError = neuron.value - target[neuronIndex]
+                    val partialDerivative = neuron.activationFunction.derivative(neuron.value)
+                    neuron.backPropagation = partialError * partialDerivative
 
-    fun backpropagation() {
-        repeat(5) {
-            // var weightsPrev = 1.0
-            // reset neurons backpropagation
-            for (layer in layers) {
-                for (neuron in layer.neurons) {
-                    neuron.backpropagation = 1.0
+                    val nextNeuron = layers[layers.size - 2].neurons[neuronIndex]
+                    neuron.weights[weightIndex] -= learningRate * nextNeuron.value * neuron.backPropagation
                 }
             }
 
-            val output = predict(doubleArrayOf(1.5))
-            for (layer in layers.reversed()) {
-                for (neuron in layer.neurons) {
-                    for (i in neuron.weights.indices) {
-                        if (layer != layers.last()) {
-                            neuron.weights[i] = gradiant(output[0], neuron.weights[i], 0.5, 1.0, 1.5)
-                        } else {
-                            neuron.weights[i] = gradiant(output[0], neuron.weights[i], 0.5, neuron.backpropagation, 1.5)
+            val reversedLayers = layers.reversed()
+            for (layerIndex in 1..<reversedLayers.size - 1) {
+                for (neuronIndex in reversedLayers[layerIndex].neurons.indices) {
+                    val neuron = reversedLayers[layerIndex].neurons[neuronIndex]
+                    for (weightIndex in neuron.weights.indices) {
+                        var partialError = 0.0
+                        for (beforeNeuronIndex in reversedLayers[layerIndex - 1].neurons.indices) {
+                            val beforeNeuron = reversedLayers[layerIndex - 1].neurons[beforeNeuronIndex]
+                            partialError += beforeNeuron.weights[neuronIndex] * beforeNeuron.backPropagation
                         }
-                        neuron.backpropagation *= neuron.weights[i]
+                        val partialDerivative = neuron.activationFunction.derivative(neuron.value)
+                        neuron.backPropagation = partialError * partialDerivative
+
+                        val nextNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
+                        neuron.weights[weightIndex] -= learningRate * neuron.backPropagation * nextNeuron.value
+
                     }
                 }
             }
-            println("==========================")
+            iteration++
+            val predict = predict(input)
+            error = totalSquaredError(predict, target)
         }
+        println(iteration)
     }
 
     fun load(path: String) {
@@ -81,42 +86,43 @@ class NeuralNetwork(private var learningRate: Double) {
         val bufferedReader = file.bufferedReader()
         var line = bufferedReader.readLine()
         while (line != null) {
-            val (nbInputs, nbNeurons) = line.split(" ").map { it.toInt() }
-            val layer = Layer(nbInputs, nbNeurons, ReLU, false)
-            line = bufferedReader.readLine()
-            val lineWeights = line.split(" ").subList(0, nbNeurons * nbInputs)
-            val weights = lineWeights.map { it.toDouble() }.toDoubleArray()
-            for (neuron in layer.neurons) {
-                neuron.weights = weights
+            val (nbNeurons) = line.split(" ").map { it.toInt() }
+            val layer = Layer(nbNeurons, None, false)
+            layer.initialize()
+            for (i in 0..<nbNeurons) {
+                line = bufferedReader.readLine()
+                if (line.isEmpty()) break
+                val weights = line.split(" ").map { it.toDouble() }.toDoubleArray()
+                layer.neurons[i].initialize(values = weights)
             }
             layers.add(layer)
             line = bufferedReader.readLine()
         }
+        bufferedReader.close()
     }
-
 
     fun save(path: String) {
         val file = File(path)
         val bufferWriter = file.bufferedWriter()
-        for (layer in layers.reversed()) {
-            bufferWriter.write("${layer.neurons.size} ${layer.neurons[0].weights.size}\n")
+        for (layer in layers) {
+            bufferWriter.write("${layer.neurons.size}\n")
             for (neuron in layer.neurons) {
-                for (weight in neuron.weights) {
-                    bufferWriter.write("$weight ")
-                }
+                val str = neuron.weights.joinToString(" ")
+                bufferWriter.write(str)
+                bufferWriter.write("\n")
             }
-            bufferWriter.write("\n")
         }
         bufferWriter.close()
     }
 
     override fun toString(): String {
         val sb = StringBuilder()
-        for (layer in layers) {
-            sb.append("Layer\n")
-            sb.append(layer.toString())
+        for (i in layers.indices) {
+            sb.append("Layer $i\n")
+            sb.append(layers[i].toString())
             sb.append("\n")
         }
         return sb.toString()
     }
 }
+

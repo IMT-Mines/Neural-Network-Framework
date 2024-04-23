@@ -1,10 +1,15 @@
-class Neuron(private val activationFunction: ActivationFunction, private val useBias: Boolean = true) {
+class Neuron(val activationFunction: ActivationFunction, private val useBias: Boolean = true) {
 
-    lateinit var weights: DoubleArray
+    var weights: DoubleArray = doubleArrayOf()
+    var value: Double = 0.0
+    var backPropagation: Double = 0.0
     private var bias: Double = 0.0
-    var backpropagation = 1.0
 
-    fun initialize(nbInputs: Int) {
+    fun initialize(nbInputs: Int = 0, values: DoubleArray = doubleArrayOf()) {
+        if (values.isNotEmpty()) {
+            weights = values
+            return
+        }
         weights = DoubleArray(nbInputs) { Math.random() * 2 - 1 }
         bias = if (useBias) Math.random() * 2 - 1 else 0.0
     }
@@ -15,7 +20,8 @@ class Neuron(private val activationFunction: ActivationFunction, private val use
         for (i in inputs.indices) {
             output += inputs[i] * weights[i]
         }
-        return activationFunction.activate(output)
+        this.value = activationFunction.activate(output)
+        return this.value
     }
 
     override fun toString(): String {
@@ -23,6 +29,6 @@ class Neuron(private val activationFunction: ActivationFunction, private val use
             weights.joinToString {
                 it.toString()
             }
-        }, bias=$bias)"
+        }, bias=$bias, value=$value"
     }
 }

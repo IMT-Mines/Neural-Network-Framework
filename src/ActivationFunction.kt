@@ -11,7 +11,7 @@ object Sigmoid : ActivationFunction {
     }
 
     override fun derivative(x: Double): Double {
-        return activate(x) * (1 - activate(x))
+        return x * (1 - x)
     }
 }
 
@@ -31,11 +31,21 @@ object Tanh : ActivationFunction {
     }
 
     override fun derivative(x: Double): Double {
-        return 1 - activate(x) * activate(x)
+        return 1 - x * x
     }
 }
 
 object Linear : ActivationFunction {
+    override fun activate(x: Double): Double {
+        return x
+    }
+
+    override fun derivative(x: Double): Double {
+        return 1.0
+    }
+}
+
+object None : ActivationFunction {
     override fun activate(x: Double): Double {
         return x
     }
