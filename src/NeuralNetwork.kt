@@ -28,21 +28,18 @@ class NeuralNetwork(private var learningRate: Double) {
         }
     }
 
-    fun totalSquaredError(actual: DoubleArray, expected: DoubleArray): Double {
+    fun meanSquaredError(actual: DoubleArray, expected: DoubleArray): Double {
         var error = 0.0
         for (i in actual.indices) {
-            error += 1.0 / 2.0 * (expected[i] - actual[i]).pow(2.0)
-
+            error += (expected[i] - actual[i]).pow(2)
         }
-        return error
+        return 1.0 / actual.size * error
     }
-
 
     fun backpropagation(target: DoubleArray, input: DoubleArray) {
         var error = 1.0
         var iteration = 0
         while (error > 0.0001) {
-            //var predict = predict(doubleArrayOf(1.5))
             for (neuronIndex in layers.last().neurons.indices) {
                 val neuron = layers.last().neurons[neuronIndex]
                 for (weightIndex in neuron.weights.indices) {
@@ -76,7 +73,7 @@ class NeuralNetwork(private var learningRate: Double) {
             }
             iteration++
             val predict = predict(input)
-            error = totalSquaredError(predict, target)
+            error = meanSquaredError(predict, target)
         }
         println(iteration)
     }
