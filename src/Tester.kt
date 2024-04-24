@@ -2,34 +2,47 @@ class Tester {
 
     companion object {
         fun testBackpropagation() {
-            val model = NeuralNetwork(learningRate = 0.01)
-            model.addLayer(Layer(5, Sigmoid, false))
+            val model = NeuralNetwork(learningRate = 0.1)
+            model.addLayer(Layer(4, Sigmoid, false))
             model.addLayer(Layer(10, Sigmoid, false))
-            model.addLayer(Layer(5, Sigmoid, false))
+            model.addLayer(Layer(9, Sigmoid, false))
             model.initialize()
             model.save("model.txt")
 
 
-            val input = doubleArrayOf(1.5, 2.0, 3.0, 4.0, 5.0)
-            val expected = doubleArrayOf(0.5, 0.2, 1.0, 0.4, 0.13)
+            val input: DoubleArray = DoubleArray(4) { 0.0 }
+            val expected: DoubleArray = DoubleArray(9) { 0.0 }
+
+            for (i in 0..<4) {
+                input[i] = Math.random()
+            }
+
+            expected[2] = 1.0
 
             // BEFORE BACKPROPAGATION
             var output = model.predict(input)
             var error = model.meanSquaredError(output, expected)
             println("Mean squared error: $error")
             for (i in expected.indices) {
-                println("Input: ${input[i]} -> Output: ${output[i]} : Expected: ${expected[i]} -> Error: ${expected[i] - output[i]}")
+                println("Output: ${output[i]} : Expected: ${expected[i]} -> Error: ${expected[i] - output[i]}")
             }
 
-            model.backpropagation(expected, input)
+            model.optimize(expected, input)
 
             // AFTER BACKPROPAGATION
             output = model.predict(input)
             error = model.meanSquaredError(output, expected)
             println("Mean squared error: $error")
             for (i in expected.indices) {
-                println("Input: ${input[i]} -> Output: ${output[i]} : Expected: ${expected[i]} -> Error: ${expected[i] - output[i]}")
+                println("Output: ${output[i]} : Expected: ${expected[i]} -> Error: ${expected[i] - output[i]}")
             }
+
+            model.save("model.txt")
+        }
+
+
+
+        fun testEnvironment() {
         }
     }
 }

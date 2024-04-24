@@ -36,7 +36,7 @@ class NeuralNetwork(private var learningRate: Double) {
         return 1.0 / actual.size * error
     }
 
-    fun backpropagation(target: DoubleArray, input: DoubleArray) {
+    fun optimize(target: DoubleArray, input: DoubleArray) {
         var error = 1.0
         var iteration = 0
         while (error > 0.0001) {
@@ -67,7 +67,6 @@ class NeuralNetwork(private var learningRate: Double) {
 
                         val nextNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
                         neuron.weights[weightIndex] -= learningRate * neuron.backPropagation * nextNeuron.value
-
                     }
                 }
             }
@@ -75,7 +74,7 @@ class NeuralNetwork(private var learningRate: Double) {
             val predict = predict(input)
             error = meanSquaredError(predict, target)
         }
-        println(iteration)
+        println("Finished in $iteration iterations with error $error")
     }
 
     fun load(path: String) {
@@ -84,7 +83,7 @@ class NeuralNetwork(private var learningRate: Double) {
         var line = bufferedReader.readLine()
         while (line != null) {
             val (nbNeurons) = line.split(" ").map { it.toInt() }
-            val layer = Layer(nbNeurons, None, false)
+            val layer = Layer(nbNeurons, Linear, false)
             layer.initialize()
             for (i in 0..<nbNeurons) {
                 line = bufferedReader.readLine()

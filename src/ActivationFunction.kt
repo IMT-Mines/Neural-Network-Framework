@@ -44,13 +44,3 @@ object Linear : ActivationFunction {
         return 1.0
     }
 }
-
-object None : ActivationFunction {
-    override fun activate(x: Double): Double {
-        return x
-    }
-
-    override fun derivative(x: Double): Double {
-        return 1.0
-    }
-}

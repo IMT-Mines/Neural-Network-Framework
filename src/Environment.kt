@@ -6,8 +6,8 @@ class Environment {
     }
 
     init {
-        val x = (0..9).random()
-        val y = (0..9).random()
+        val x = (0..3).random()
+        val y = (0..3).random()
         map[x][y] = 1
         agentPosition = Pair(x, y)
         println(map.joinToString("\n") { it.joinToString(" ") })
@@ -52,12 +52,12 @@ class Environment {
         val currentX = agentPosition.first
         val currentY = agentPosition.second
 
-        if (currentX == 2 && currentY == 2) {
-            return 1
+        return if (currentX == 2 && currentY == 2) {
+            1
         } else if (currentX == 1 && currentY == 1) {
-            return -1
+            -1
         } else {
-            return 0
+            0
         }
     }
 }

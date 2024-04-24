@@ -1,8 +1,8 @@
 fun main() {
-
     Tester.testBackpropagation()
-    //train(model)
 }
+
+
 
 
 fun train(model: NeuralNetwork) {
@@ -13,30 +13,27 @@ fun train(model: NeuralNetwork) {
     val step = 400
 
     // get current state
-    val state = environment.getState()
+    var state = environment.getState()
 
-    for (i in 0 until episode) {
-        for (j in 0 until step) {
+    for (i in 0..<episode) {
+        var totalReward = 0
+        for (j in 0..<step) {
 
             val action = pickAction(epsilon, model, state)
             environment.action(action)
             val reward = environment.getReward()
-            val nextState = environment.getState()
+            totalReward += reward
 
-            // Masque pour l'erreur ?
-            var mask = DoubleArray(4) { 0.0 }
-            mask[action] = 1.0
-
-            // Insert les information dans un batch
-
+            model.optimize(doubleArrayOf(reward.toDouble()), state)
         }
 
         // Decrease epsilon
-        epsilon = Math.max(0.1, epsilon * 0.99)
+        epsilon = 0.1.coerceAtLeast(epsilon * 0.99)
 
-//        println("--------------------")
-//        println("Reward ")
-//        println("episode: $i")
+
+        println("--------------------")
+        println("Episode: $i")
+        println("Total reward: $totalReward")
     }
 }
 
@@ -52,6 +49,4 @@ fun pickAction(epsilon: Double, model: NeuralNetwork, currentState: DoubleArray)
     }
 }
 
-fun trainModel() {
-}
 
