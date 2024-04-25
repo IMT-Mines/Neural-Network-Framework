@@ -1,4 +1,4 @@
-class Neuron(val activationFunction: ActivationFunction, private val useBias: Boolean = true) {
+class Neuron(var activationFunction: ActivationFunction, private val useBias: Boolean = true) {
 
     var weights: DoubleArray = doubleArrayOf()
     var output: Double = 0.0

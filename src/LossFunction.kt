@@ -1,4 +1,3 @@
-import java.lang.Math.log
 import kotlin.math.ln
 import kotlin.math.pow
 
@@ -60,7 +59,6 @@ object BinaryCrossEntropy : LossFunction {
         }
         return 1.0 / outputs.size * totalLoss
     }
-
 
 
 }

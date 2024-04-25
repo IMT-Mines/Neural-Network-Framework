@@ -80,9 +80,8 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
                 return
             }
             totalError = currentTotalError
-            //println("Error : $totalError")
         }
-        //println("Finished in $iteration iterations with error $totalError")
+        //println("Compile in $iteration iterations with total error $totalError")
     }
 
     fun load(path: String) {
@@ -91,7 +90,7 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         var line = bufferedReader.readLine()
         while (line != null) {
             val nbNeurons = line.toInt()
-            val layer = Layer(nbNeurons, useBias = false)
+            val layer = Layer(nbNeurons)
             layer.initialize()
             for (i in 0..<nbNeurons) {
                 line = bufferedReader.readLine()
