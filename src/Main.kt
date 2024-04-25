@@ -1,5 +1,6 @@
 fun main() {
-    Tester.testBackpropagation()
+//    Tester.testBackpropagation()
+    Tester.testBinaryClassification()
 }
 
 
@@ -24,8 +25,9 @@ fun train(model: NeuralNetwork) {
             val reward = environment.getReward()
             totalReward += reward
 
-            model.optimize(doubleArrayOf(reward.toDouble()), state)
+            model.compile(doubleArrayOf(reward.toDouble()), state)
         }
+        println("Episode: $i")
 
         // Decrease epsilon
         epsilon = 0.1.coerceAtLeast(epsilon * 0.99)

@@ -1,18 +1,26 @@
 import java.io.File
-import kotlin.math.pow
 
-class NeuralNetwork(private var learningRate: Double) {
+class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunction = SquaredError) {
 
-    private val layers = mutableListOf<Layer>()
+    val layers = mutableListOf<Layer>()
 
     fun predict(inputs: DoubleArray): DoubleArray {
         for (i in 0..<layers.first().neurons.size) {
-            layers.first().neurons[i].value = inputs[i]
+            layers.first().neurons[i].output = inputs[i]
         }
         var outputs = inputs
         for (i in 1..<layers.size) {
             outputs = layers[i].compute(outputs)
         }
+
+        // Normalize the output if the last layer uses the softmax activation function
+        if (layers.last().activationFunction == Softmax) {
+            val sum = outputs.sum()
+            for (i in outputs.indices) {
+                outputs[i] /= sum
+            }
+        }
+
         return outputs
     }
 
@@ -28,27 +36,22 @@ class NeuralNetwork(private var learningRate: Double) {
         }
     }
 
-    fun meanSquaredError(actual: DoubleArray, expected: DoubleArray): Double {
-        var error = 0.0
-        for (i in actual.indices) {
-            error += (expected[i] - actual[i]).pow(2)
-        }
-        return 1.0 / actual.size * error
-    }
-
-    fun optimize(target: DoubleArray, input: DoubleArray) {
-        var error = 1.0
+    fun compile(target: DoubleArray, input: DoubleArray) {
+        var predictions = predict(input)
+        var totalError = this.lossFunction.totalLoss(predictions, target)
         var iteration = 0
-        while (error > 0.0001) {
+        val tolerance = 0.01
+
+        while (totalError > tolerance && iteration < 10000) {
             for (neuronIndex in layers.last().neurons.indices) {
                 val neuron = layers.last().neurons[neuronIndex]
                 for (weightIndex in neuron.weights.indices) {
-                    val partialError = neuron.value - target[neuronIndex]
-                    val partialDerivative = neuron.activationFunction.derivative(neuron.value)
-                    neuron.backPropagation = partialError * partialDerivative
+                    val outputError = this.lossFunction.derivative(neuron.output, target[neuronIndex])
+                    val delta = neuron.activationFunction.derivative(neuron.output)
+                    neuron.delta = outputError * delta
 
-                    val nextNeuron = layers[layers.size - 2].neurons[neuronIndex]
-                    neuron.weights[weightIndex] -= learningRate * nextNeuron.value * neuron.backPropagation
+                    val nextLayerNeuron = layers[layers.size - 2].neurons[neuronIndex]
+                    neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
                 }
             }
 
@@ -58,23 +61,28 @@ class NeuralNetwork(private var learningRate: Double) {
                     val neuron = reversedLayers[layerIndex].neurons[neuronIndex]
                     for (weightIndex in neuron.weights.indices) {
                         var partialError = 0.0
-                        for (beforeNeuronIndex in reversedLayers[layerIndex - 1].neurons.indices) {
-                            val beforeNeuron = reversedLayers[layerIndex - 1].neurons[beforeNeuronIndex]
-                            partialError += beforeNeuron.weights[neuronIndex] * beforeNeuron.backPropagation
+                        for (previousLayerNeuron in reversedLayers[layerIndex - 1].neurons.indices) {
+                            val beforeNeuron = reversedLayers[layerIndex - 1].neurons[previousLayerNeuron]
+                            partialError += beforeNeuron.weights[neuronIndex] * beforeNeuron.delta
                         }
-                        val partialDerivative = neuron.activationFunction.derivative(neuron.value)
-                        neuron.backPropagation = partialError * partialDerivative
+                        val delta = neuron.activationFunction.derivative(neuron.output)
+                        neuron.delta = partialError * delta
 
-                        val nextNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
-                        neuron.weights[weightIndex] -= learningRate * neuron.backPropagation * nextNeuron.value
+                        val nextLayerNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
+                        neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
                     }
                 }
             }
             iteration++
-            val predict = predict(input)
-            error = meanSquaredError(predict, target)
+            predictions = predict(input)
+            val currentTotalError = this.lossFunction.totalLoss(predictions, target)
+            if (currentTotalError > totalError) {
+                return
+            }
+            totalError = currentTotalError
+            //println("Error : $totalError")
         }
-        println("Finished in $iteration iterations with error $error")
+        //println("Finished in $iteration iterations with error $totalError")
     }
 
     fun load(path: String) {
@@ -82,12 +90,12 @@ class NeuralNetwork(private var learningRate: Double) {
         val bufferedReader = file.bufferedReader()
         var line = bufferedReader.readLine()
         while (line != null) {
-            val (nbNeurons) = line.split(" ").map { it.toInt() }
-            val layer = Layer(nbNeurons, Linear, false)
+            val nbNeurons = line.toInt()
+            val layer = Layer(nbNeurons, useBias = false)
             layer.initialize()
             for (i in 0..<nbNeurons) {
                 line = bufferedReader.readLine()
-                if (line.isEmpty()) break
+                if (line.isEmpty()) continue
                 val weights = line.split(" ").map { it.toDouble() }.toDoubleArray()
                 layer.neurons[i].initialize(values = weights)
             }
@@ -115,6 +123,8 @@ class NeuralNetwork(private var learningRate: Double) {
         val sb = StringBuilder()
         for (i in layers.indices) {
             sb.append("Layer $i\n")
+            // name of the activation function
+            sb.append("Activation function: ${layers[i].activationFunction}\n")
             sb.append(layers[i].toString())
             sb.append("\n")
         }

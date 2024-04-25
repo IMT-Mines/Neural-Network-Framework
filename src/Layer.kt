@@ -1,6 +1,6 @@
 class Layer(
     nbNeurons: Int,
-    private var activationFunction: ActivationFunction,
+    var activationFunction: ActivationFunction = Linear,
     private var useBias: Boolean = true
 ) {
 
