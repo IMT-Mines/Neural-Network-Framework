@@ -1,11 +1,10 @@
 package main.kotlin.network
 
-import main.kotlin.train.Data
 import java.io.File
 
 class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunction = SquaredError) {
 
-    val layers = mutableListOf<Layer>()
+    private val layers = mutableListOf<Layer>()
 
     fun predict(inputs: DoubleArray): DoubleArray {
         for (i in 0..<layers.first().neurons.size) {
@@ -55,7 +54,7 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
                     val delta = neuron.activationFunction.derivative(neuron.output)
                     neuron.delta = outputError * delta
 
-                    val nextLayerNeuron = layers[layers.size - 2].neurons[neuronIndex]
+                    val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
                     neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
                 }
             }

@@ -11,20 +11,22 @@ class Tester {
     fun testBackpropagation() {
         val model = NeuralNetwork(learningRate = 0.001, lossFunction = BinaryCrossEntropy)
         model.addLayer(Layer(33))
-        model.addLayer(Layer(10, Sigmoid, false))
-        model.addLayer(Layer(1, Sigmoid, false))
+        model.addLayer(Layer(2, Sigmoid, false))
+        model.addLayer(Layer(5, Sigmoid, false))
         model.initialize()
         model.save("model.txt")
 
 
         val input: DoubleArray = DoubleArray(33) { 0.0 }
-        val expected: DoubleArray = DoubleArray(1) { 0.0 }
+        val expected: DoubleArray = DoubleArray(5) { 0.0 }
 
         for (i in 0..<33) {
             input[i] = Math.random()
         }
 
-        expected[0] = 1.0
+        for (i in 0..<5) {
+            expected[i] = Math.random()
+        }
 
         // BEFORE BACKPROPAGATION
         var output = model.predict(input)

@@ -20,8 +20,8 @@ class BinaryClassification {
         // Create the model
         val model = NeuralNetwork(learningRate = 0.01, lossFunction = BinaryCrossEntropy)
         model.addLayer(Layer(60))
-        model.addLayer(Layer(10, ReLU, true))
-        model.addLayer(Layer(1, Sigmoid, true))
+        model.addLayer(Layer(10, ReLU))
+        model.addLayer(Layer(1, Sigmoid))
         model.initialize()
 
         // Train the model

@@ -1,6 +1,8 @@
 package main.kotlin.network
 
 import kotlin.math.ln
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 
 interface LossFunction {
@@ -46,12 +48,16 @@ object MeanSquaredError : LossFunction {
 }
 
 object BinaryCrossEntropy : LossFunction {
+    private const val EPSILON = 1e-15
+
     override fun loss(output: Double, target: Double): Double {
-        return -target * ln(output) - (1 - target) * ln(1 - output)
+        val clippedOutput = max(min(output, 1.0 - EPSILON), EPSILON)
+        return -target * ln(clippedOutput) - (1 - target) * ln(1 - clippedOutput)
     }
 
     override fun derivative(output: Double, target: Double): Double {
-        return (output - target) / (output * (1 - output))
+        val clippedOutput = max(min(output, 1.0 - EPSILON), EPSILON)
+        return (clippedOutput - target) / (clippedOutput * (1 - clippedOutput))
     }
 
     override fun totalLoss(outputs: DoubleArray, targets: DoubleArray): Double {
