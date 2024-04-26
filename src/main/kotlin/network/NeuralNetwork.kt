@@ -1,5 +1,6 @@
 package main.kotlin.network
 
+import main.kotlin.train.Data
 import java.io.File
 
 class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunction = SquaredError) {
@@ -38,10 +39,7 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         }
     }
 
-    fun compile(target: DoubleArray, input: DoubleArray) {
-        val maxIterations = 1000
-        val tolerance = 0.01
-
+    fun compile(target: DoubleArray, input: DoubleArray, tolerance: Double = 0.01, maxIterations: Int = 1000) {
         for (iteration in 0..<maxIterations) {
             val predictions = predict(input)
             val currentTotalError = this.lossFunction.totalLoss(predictions, target)
@@ -81,7 +79,6 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
                 }
             }
         }
-        //println("Compile in $iteration iterations with total error $totalError")
     }
 
     fun load(path: String) {
@@ -130,4 +127,3 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         return sb.toString()
     }
 }
-

@@ -7,9 +7,11 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    maven("https://packages.jetbrains.team/maven/p/kds/kotlin-ds-maven")
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlin-statistics-jvm:0.2.1")
     testImplementation(kotlin("test"))
 }
 
