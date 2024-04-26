@@ -1,5 +1,6 @@
+package main.kotlin.network
+
 import kotlin.math.ln
-import kotlin.math.log
 import kotlin.math.pow
 
 interface LossFunction {

@@ -1,3 +1,5 @@
+package main.kotlin.network
+
 class Neuron(var activationFunction: ActivationFunction, private val useBias: Boolean = true) {
 
     var weights: DoubleArray = doubleArrayOf()
@@ -15,7 +17,6 @@ class Neuron(var activationFunction: ActivationFunction, private val useBias: Bo
     }
 
     fun compute(inputs: DoubleArray): Double {
-        //require(inputs.size == weights.size) { "The number of inputs must be equal to the number of weights" }
         var output = bias
         for (i in inputs.indices) {
             output += inputs[i] * weights[i]

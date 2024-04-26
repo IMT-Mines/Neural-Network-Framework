@@ -1,3 +1,5 @@
+package main.kotlin.train
+
 import java.io.File
 import java.util.*
 
@@ -6,7 +8,7 @@ class DataLoader {
     companion object {
         fun loadIonosphere(): Data {
             val data = Data()
-            val file = File("ionosphere.data")
+            val file = File("src/main/resources/ionosphere.data")
             val scanner = Scanner(file)
             while (scanner.hasNextLine()) {
                 val line = scanner.nextLine()

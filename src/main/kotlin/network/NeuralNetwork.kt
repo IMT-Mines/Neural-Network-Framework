@@ -1,3 +1,5 @@
+package main.kotlin.network
+
 import java.io.File
 
 class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunction = SquaredError) {

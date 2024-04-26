@@ -1,3 +1,5 @@
+package main.kotlin.network
+
 class Layer(
     nbNeurons: Int,
     var activationFunction: ActivationFunction = Linear,

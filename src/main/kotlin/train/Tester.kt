@@ -1,3 +1,7 @@
+package main.kotlin.train
+
+import main.kotlin.network.*
+
 class Tester {
 
     companion object {
@@ -62,7 +66,7 @@ class Tester {
                     model.compile(target, input)
                 }
             }
-            model.save("model.txt")
+            model.save("src/main/resources/model.txt")
 
             for (index in 0..<data.size()) {
                 val input = data.get(index).first

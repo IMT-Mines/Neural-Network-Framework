@@ -1,3 +1,5 @@
+package main.kotlin.network
+
 import kotlin.math.exp
 
 interface ActivationFunction {
