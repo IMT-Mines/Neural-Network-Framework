@@ -1,4 +1,5 @@
 import kotlin.math.ln
+import kotlin.math.log
 import kotlin.math.pow
 
 interface LossFunction {
@@ -59,11 +60,4 @@ object BinaryCrossEntropy : LossFunction {
         }
         return 1.0 / outputs.size * totalLoss
     }
-
-
 }
-
-//TODO: j'ai commencé a implémenter la gestion dynamique des lossfunction, maintenant, il faut commencer a implementer
-// Celles pour faire l'algorithme de trie, attention, a revoir pour les probleme RELU et TANH qui ont du mal
-// A converger et à obtenir une erreur adaptée.
-

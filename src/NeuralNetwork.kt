@@ -37,12 +37,17 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
     }
 
     fun compile(target: DoubleArray, input: DoubleArray) {
-        var predictions = predict(input)
-        var totalError = this.lossFunction.totalLoss(predictions, target)
-        var iteration = 0
+        val maxIterations = 1000
         val tolerance = 0.01
 
-        while (totalError > tolerance && iteration < 10000) {
+        for (iteration in 0..<maxIterations) {
+            val predictions = predict(input)
+            val currentTotalError = this.lossFunction.totalLoss(predictions, target)
+
+            if (currentTotalError <= tolerance) {
+                break
+            }
+
             for (neuronIndex in layers.last().neurons.indices) {
                 val neuron = layers.last().neurons[neuronIndex]
                 for (weightIndex in neuron.weights.indices) {
@@ -73,13 +78,6 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
                     }
                 }
             }
-            iteration++
-            predictions = predict(input)
-            val currentTotalError = this.lossFunction.totalLoss(predictions, target)
-            if (currentTotalError > totalError) {
-                return
-            }
-            totalError = currentTotalError
         }
         //println("Compile in $iteration iterations with total error $totalError")
     }
