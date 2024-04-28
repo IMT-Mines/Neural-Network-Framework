@@ -1,8 +1,10 @@
 package main.kotlin.train.classification
 
+import main.kotlin.charts.Chart
 import main.kotlin.network.*
 import main.kotlin.train.Data
 import main.kotlin.train.DataLoader
+import org.jetbrains.kotlinx.kandy.util.color.Color
 
 class BinaryClassification {
 
@@ -18,14 +20,14 @@ class BinaryClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.01, lossFunction = BinaryCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.001, lossFunction = BinaryCrossEntropy)
         model.addLayer(Layer(60))
+        model.addLayer(Layer(60, ReLU))
         model.addLayer(Layer(10, ReLU))
         model.addLayer(Layer(1, Sigmoid))
         model.initialize()
 
-        // Train the model
-        train(model, 100, train)
+        train(model, 1000, train)
 
         model.save("src/main/resources/sonarModel.txt")
 
@@ -44,15 +46,14 @@ class BinaryClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.01, lossFunction = BinaryCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.001, lossFunction = BinaryCrossEntropy)
         model.addLayer(Layer(33))
-        model.addLayer(Layer(20, ReLU))
-        model.addLayer(Layer(5, ReLU))
+        model.addLayer(Layer(33, ReLU))
+        model.addLayer(Layer(4, ReLU))
         model.addLayer(Layer(1, Sigmoid))
         model.initialize()
 
-        // Train the model
-        train(model, 50, train)
+        train(model, 1000, train)
 
         model.save("src/main/resources/ionosphereModel.txt")
 
@@ -61,30 +62,37 @@ class BinaryClassification {
 
     private fun train(model: NeuralNetwork, epochs: Int, data: Data) {
         println("\n======================= TRAINING =======================\n")
-        for (epoch in 0..<epochs) {
+        val lossChart: MutableMap<Int, Double> = mutableMapOf()
+        val accuracyChart: MutableMap<Int, Double> = mutableMapOf()
+        for (epoch in 1..epochs) {
             val accuracy = DoubleArray(data.size())
             var totalLoss = 0.0
             for (index in 0..<data.size()) {
                 val sample = data.get(index)
                 val inputs = sample.first
-                val target = doubleArrayOf(sample.second)
-                model.compile(target, inputs, 0.00001)
-
+                val target = sample.second
                 val outputs = model.predict(inputs)
+
+                model.compile(target)
 
                 if (Math.round(outputs[0]).toDouble() == target[0]) {
                     accuracy[index] = 1.0
                 }
                 totalLoss += model.lossFunction.totalLoss(outputs, target)
             }
+            accuracyChart[epoch] = accuracy.average()
+            lossChart[epoch] = totalLoss / data.size()
             println(
-                "Epoch: %d | Training Loss: %10.4f | Accuracy: %10.2f".format(
+                "Epoch: %d / %d | Training Loss: %10.4f | Accuracy: %10.2f".format(
                     epoch,
+                    epochs,
                     totalLoss / data.size(),
                     accuracy.average()
                 )
             )
         }
+        Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN)
+        Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss")
     }
 
     private fun test(model: NeuralNetwork, data: Data) {
@@ -93,7 +101,7 @@ class BinaryClassification {
         for (index in 0..<data.size()) {
             val sample = data.get(index)
             val inputs = sample.first
-            val target = doubleArrayOf(sample.second)
+            val target = sample.second
             val output = model.predict(inputs)
             if (Math.round(output[0]).toDouble() == target[0]) {
                 accuracy += 1.0

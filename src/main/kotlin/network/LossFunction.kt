@@ -68,3 +68,25 @@ object BinaryCrossEntropy : LossFunction {
         return 1.0 / outputs.size * totalLoss
     }
 }
+
+object CategoricalCrossEntropy : LossFunction {
+    private const val EPSILON = 1e-15
+
+    override fun loss(output: Double, target: Double): Double {
+        val clippedOutput = max(min(output, 1.0 - EPSILON), EPSILON)
+        return -target * ln(clippedOutput)
+    }
+
+    override fun derivative(output: Double, target: Double): Double {
+        val clippedOutput = max(min(output, 1.0 - EPSILON), EPSILON)
+        return -target / clippedOutput
+    }
+
+    override fun totalLoss(outputs: DoubleArray, targets: DoubleArray): Double {
+        var totalLoss = 0.0
+        for (i in outputs.indices) {
+            totalLoss += loss(outputs[i], targets[i])
+        }
+        return 1.0 / outputs.size * totalLoss
+    }
+}

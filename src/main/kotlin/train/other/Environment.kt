@@ -1,4 +1,4 @@
-package main.kotlin.train
+package main.kotlin.train.other
 
 class Environment {
 

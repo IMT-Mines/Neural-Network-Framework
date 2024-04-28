@@ -20,9 +20,9 @@ class DataLoader {
                 }
                 val label = values[60]
                 if (label == "R") {
-                    data.add(features, 0.0)
+                    data.add(features, doubleArrayOf(0.0))
                 } else {
-                    data.add(features, 1.0)
+                    data.add(features, doubleArrayOf(1.0))
                 }
             }
             return data
@@ -45,10 +45,13 @@ class DataLoader {
                 val label = values[4]
                 when (label) {
                     "Iris-setosa" -> {
-                        data.add(features, 0.0)
+                        data.add(features, doubleArrayOf(1.0, 0.0, 0.0))
                     }
                     "Iris-versicolor" -> {
-                        data.add(features, 1.0)
+                        data.add(features, doubleArrayOf(0.0, 1.0, 0.0))
+                    }
+                    "Iris-virginica" -> {
+                        data.add(features, doubleArrayOf(0.0, 0.0, 1.0))
                     }
                 }
             }
@@ -68,9 +71,9 @@ class DataLoader {
                 }
                 val label = values[34]
                 if (label == "g") {
-                    data.add(features, 1.0)
+                    data.add(features, doubleArrayOf(1.0))
                 } else {
-                    data.add(features, 0.0)
+                    data.add(features, doubleArrayOf(0.0))
                 }
             }
             return data
@@ -81,9 +84,9 @@ class DataLoader {
 class Data {
 
     private val features = mutableListOf<DoubleArray>()
-    private val labels = mutableListOf<Double>()
+    private val labels = mutableListOf<DoubleArray>()
 
-    fun add(features: DoubleArray, label: Double) {
+    fun add(features: DoubleArray, label: DoubleArray) {
         this.features.add(features)
         this.labels.add(label)
     }
@@ -92,7 +95,7 @@ class Data {
         return features.size
     }
 
-    fun get(index: Int): Pair<DoubleArray, Double> {
+    fun get(index: Int): Pair<DoubleArray, DoubleArray> {
         return Pair(features[index], labels[index])
     }
 

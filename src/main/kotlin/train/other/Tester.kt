@@ -1,4 +1,4 @@
-package main.kotlin.train
+package main.kotlin.train.other
 
 import main.kotlin.network.BinaryCrossEntropy
 import main.kotlin.network.Layer
@@ -36,7 +36,7 @@ class Tester {
             println("Output: ${output[i]} : Expected: ${expected[i]} -> Error: ${expected[i] - output[i]}")
         }
 
-        model.compile(expected, input)
+        model.compile(expected)
 
         // AFTER BACKPROPAGATION
         output = model.predict(input)

@@ -2,6 +2,7 @@ package main.kotlin.network
 
 import kotlin.math.exp
 
+
 interface ActivationFunction {
     fun activate(x: Double): Double
     fun derivative(x: Double): Double
@@ -57,12 +58,25 @@ object Linear : ActivationFunction {
     }
 }
 
-object Softmax : ActivationFunction {
-    override fun activate(x: Double): Double {
-        return exp(x)
-    }
-
-    override fun derivative(x: Double): Double {
-        return x * (1 - x)
-    }
-}
+//object Softmax : ActivationFunction() {
+//
+//    override fun activate(x: Double): Double {
+//        return x
+//    }
+//
+//    override fun activate(z: DoubleArray): DoubleArray {
+//        val maxZ = z.maxOrNull() ?: throw IllegalArgumentException("Input array must not be empty")
+//        val expZ = z.map { exp(it - maxZ) }
+//        val sumExpZ = expZ.sum()
+//        return expZ.map { it / sumExpZ }.toDoubleArray()
+//    }
+//
+//    override fun derivative(z: DoubleArray): DoubleArray {
+//        val softmaxZ = activate(z)
+//        val n = softmaxZ.size
+//        val jacobian = DoubleArray(n) { i ->
+//            softmaxZ[i] * (1 - softmaxZ[i])
+//        }
+//        return jacobian
+//    }
+//}
