@@ -27,32 +27,31 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
 
     /**
      * This function is used to train the neural network, it uses the backpropagation algorithm
+     * TODO COmprendre pourquoi le softmax ne fonctionne pas
      */
     fun stochasticGradientDescent(targets: DoubleArray) {
 
-        var derivatives = DoubleArray(layers.last().neurons.size)
-        if (layers.last().activationFunction == Softmax) {
-            val outputs = layers.last().neurons.map { it.output }.toDoubleArray()
-            derivatives = Softmax.derivative(outputs)
-        }
+        val outputs = layers.last().getDerivativeOfEachNeuron()
 
         for (neuronIndex in layers.last().neurons.indices) {
             val neuron = layers.last().neurons[neuronIndex]
             for (weightIndex in neuron.weights.indices) {
                 val outputError = this.lossFunction.derivative(neuron.output, targets[neuronIndex])
 
-                val derivative =
-                    if (neuron.activationFunction == Softmax) derivatives[neuronIndex] else neuron.activationFunction.derivative(neuron.output)
-                neuron.delta = outputError * derivative
-                println("Partial error: $outputError, Derivative: $derivative")
+                neuron.delta = outputError * outputs[neuronIndex]
+                //println("Partial error: $outputError, Derivative: ${outputs[neuronIndex]}")
 
                 val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
                 neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
             }
         }
 
+        // TODO ENLEVER LE REVERSED
         val reversedLayers = layers.reversed()
         for (layerIndex in 1..<reversedLayers.size - 1) {
+
+            val outputsDerivatives = reversedLayers[layerIndex].getDerivativeOfEachNeuron()
+
             for (neuronIndex in reversedLayers[layerIndex].neurons.indices) {
                 val neuron = reversedLayers[layerIndex].neurons[neuronIndex]
                 for (weightIndex in neuron.weights.indices) {
@@ -61,8 +60,7 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
                         val beforeNeuron = reversedLayers[layerIndex - 1].neurons[previousLayerNeuron]
                         partialError += beforeNeuron.weights[neuronIndex] * beforeNeuron.delta
                     }
-                    val derivative = neuron.activationFunction.derivative(neuron.output)
-                    neuron.delta = partialError * derivative
+                    neuron.delta = partialError * outputsDerivatives[neuronIndex]
 
                     val nextLayerNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
                     neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output

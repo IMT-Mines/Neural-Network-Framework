@@ -4,74 +4,102 @@ import kotlin.math.exp
 
 
 interface ActivationFunction {
-    fun activate(x: Double): Double
-    fun derivative(x: Double): Double
-    fun activate(z: DoubleArray): DoubleArray {
-        throw NotImplementedError("Activation not implemented for this activation function")
-    }
-    fun derivative(z: DoubleArray): DoubleArray {
-        throw NotImplementedError("Derivative not implemented for this activation function")
-    }
+    fun activate(z: DoubleArray): DoubleArray
+    fun derivative(z: DoubleArray): DoubleArray
 }
 
 object Sigmoid : ActivationFunction {
-    override fun activate(x: Double): Double {
+    private fun activate(x: Double): Double {
         return 1 / (1 + exp(-x))
     }
 
-    override fun derivative(x: Double): Double {
+    private fun derivative(x: Double): Double {
         return x * (1 - x)
+    }
+
+    override fun derivative(z: DoubleArray): DoubleArray {
+        return z.map { derivative(it) }.toDoubleArray()
+    }
+
+    override fun activate(z: DoubleArray): DoubleArray {
+        return z.map { activate(it) }.toDoubleArray()
     }
 }
 
 object ReLU : ActivationFunction {
-    override fun activate(x: Double): Double {
+    private fun activate(x: Double): Double {
         return if (x > 0) x else 0.0
     }
 
-    override fun derivative(x: Double): Double {
+    private fun derivative(x: Double): Double {
         return if (x > 0) 1.0 else 0.0
+    }
+
+    override fun derivative(z: DoubleArray): DoubleArray {
+        return z.map { derivative(it) }.toDoubleArray()
+    }
+
+    override fun activate(z: DoubleArray): DoubleArray {
+        return z.map { activate(it) }.toDoubleArray()
     }
 }
 
 object LeakyReLU : ActivationFunction {
-    override fun activate(x: Double): Double {
+    private fun activate(x: Double): Double {
         return if (x > 0) x else 0.01 * x
     }
 
-    override fun derivative(x: Double): Double {
+    private fun derivative(x: Double): Double {
         return if (x > 0) 1.0 else 0.01
+    }
+
+    override fun derivative(z: DoubleArray): DoubleArray {
+        return z.map { derivative(it) }.toDoubleArray()
+    }
+
+    override fun activate(z: DoubleArray): DoubleArray {
+        return z.map { activate(it) }.toDoubleArray()
     }
 }
 
 object Tanh : ActivationFunction {
-    override fun activate(x: Double): Double {
+    private fun activate(x: Double): Double {
         return kotlin.math.tanh(x)
     }
 
-    override fun derivative(x: Double): Double {
+    private fun derivative(x: Double): Double {
         return 1 - x * x
+    }
+
+    override fun derivative(z: DoubleArray): DoubleArray {
+        return z.map { derivative(it) }.toDoubleArray()
+    }
+
+
+    override fun activate(z: DoubleArray): DoubleArray {
+        return z.map { activate(it) }.toDoubleArray()
     }
 }
 
 object Linear : ActivationFunction {
-    override fun activate(x: Double): Double {
+    private fun activate(x: Double): Double {
         return x
     }
 
-    override fun derivative(x: Double): Double {
+    private fun derivative(x: Double): Double {
         return 1.0
+    }
+
+    override fun derivative(z: DoubleArray): DoubleArray {
+        return z.map { derivative(it) }.toDoubleArray()
+    }
+
+    override fun activate(z: DoubleArray): DoubleArray {
+        return z.map { activate(it) }.toDoubleArray()
     }
 }
 
 object Softmax : ActivationFunction {
-    override fun activate(x: Double): Double {
-        return x
-    }
-
-    override fun derivative(x: Double): Double {
-        return x
-    }
 
     override fun activate(z: DoubleArray): DoubleArray {
         val expZ = z.map { exp(it) }

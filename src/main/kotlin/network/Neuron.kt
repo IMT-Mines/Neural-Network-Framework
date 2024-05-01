@@ -21,7 +21,7 @@ class Neuron(var activationFunction: ActivationFunction, private val useBias: Bo
         for (i in inputs.indices) {
             output += inputs[i] * weights[i]
         }
-        this.output = activationFunction.activate(output)
+        this.output = output
         return this.output
     }
 

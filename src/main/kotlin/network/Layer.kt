@@ -21,14 +21,19 @@ class Layer(
         for (i in neurons.indices) {
             outputs[i] = neurons[i].compute(inputs)
         }
-
-        if (activationFunction == Softmax) {
-            outputs = Softmax.activate(outputs)
-            for (i in neurons.indices) {
-                neurons[i].output = outputs[i]
-            }
+        outputs = activationFunction.activate(outputs)
+        for (i in neurons.indices) {
+            neurons[i].output = outputs[i]
         }
         return outputs
+    }
+
+    fun getDerivativeOfEachNeuron(): DoubleArray {
+        val derivatives = DoubleArray(neurons.size)
+        for (i in neurons.indices) {
+            derivatives[i] = neurons[i].output
+        }
+        return activationFunction.derivative(derivatives)
     }
 
     override fun toString(): String {

@@ -23,8 +23,8 @@ class MultiClassification {
         // Create the model
         val model = NeuralNetwork(learningRate = 0.001, lossFunction = CategoricalCrossEntropy)
         model.addLayer(Layer(4))
-        model.addLayer(Layer(3, ReLU))
-        model.addLayer(Layer(3, ReLU))
+        model.addLayer(Layer(10, ReLU))
+        model.addLayer(Layer(10, ReLU))
         model.addLayer(Layer(3, Softmax))
         model.initialize()
 
