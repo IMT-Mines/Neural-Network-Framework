@@ -6,13 +6,13 @@ import kotlin.math.min
 import kotlin.math.pow
 
 interface LossFunction {
-    fun loss(output: Double, target: Double): Double
+    fun lossCalcul(output: Double, target: Double): Double
     fun derivative(output: Double, target: Double): Double
-    fun totalLoss(outputs: DoubleArray, targets: DoubleArray): Double
+    fun loss(outputs: DoubleArray, targets: DoubleArray): Double
 }
 
 object SquaredError : LossFunction {
-    override fun loss(output: Double, target: Double): Double {
+    override fun lossCalcul(output: Double, target: Double): Double {
         return (1.0 / 2.0) * (output - target).pow(2.0)
     }
 
@@ -20,17 +20,17 @@ object SquaredError : LossFunction {
         return output - target
     }
 
-    override fun totalLoss(outputs: DoubleArray, targets: DoubleArray): Double {
+    override fun loss(outputs: DoubleArray, targets: DoubleArray): Double {
         var totalLoss = 0.0
         for (i in outputs.indices) {
-            totalLoss += loss(outputs[i], targets[i])
+            totalLoss += lossCalcul(outputs[i], targets[i])
         }
         return totalLoss
     }
 }
 
 object MeanSquaredError : LossFunction {
-    override fun loss(output: Double, target: Double): Double {
+    override fun lossCalcul(output: Double, target: Double): Double {
         return (output - target).pow(2.0)
     }
 
@@ -38,10 +38,10 @@ object MeanSquaredError : LossFunction {
         return output - target
     }
 
-    override fun totalLoss(outputs: DoubleArray, targets: DoubleArray): Double {
+    override fun loss(outputs: DoubleArray, targets: DoubleArray): Double {
         var totalLoss = 0.0
         for (i in outputs.indices) {
-            totalLoss += loss(outputs[i], targets[i])
+            totalLoss += lossCalcul(outputs[i], targets[i])
         }
         return 1.0 / outputs.size * totalLoss
     }
@@ -50,7 +50,7 @@ object MeanSquaredError : LossFunction {
 object BinaryCrossEntropy : LossFunction {
     private const val EPSILON = 1e-15
 
-    override fun loss(output: Double, target: Double): Double {
+    override fun lossCalcul(output: Double, target: Double): Double {
         val clippedOutput = max(min(output, 1.0 - EPSILON), EPSILON)
         return -target * ln(clippedOutput) - (1 - target) * ln(1 - clippedOutput)
     }
@@ -60,10 +60,10 @@ object BinaryCrossEntropy : LossFunction {
         return (clippedOutput - target) / (clippedOutput * (1 - clippedOutput))
     }
 
-    override fun totalLoss(outputs: DoubleArray, targets: DoubleArray): Double {
+    override fun loss(outputs: DoubleArray, targets: DoubleArray): Double {
         var totalLoss = 0.0
         for (i in outputs.indices) {
-            totalLoss += loss(outputs[i], targets[i])
+            totalLoss += lossCalcul(outputs[i], targets[i])
         }
         return 1.0 / outputs.size * totalLoss
     }
@@ -72,21 +72,20 @@ object BinaryCrossEntropy : LossFunction {
 object CategoricalCrossEntropy : LossFunction {
     private const val EPSILON = 1e-15
 
-    override fun loss(output: Double, target: Double): Double {
+    override fun lossCalcul(output: Double, target: Double): Double {
         val clippedOutput = max(min(output, 1.0 - EPSILON), EPSILON)
         return -target * ln(clippedOutput)
     }
 
     override fun derivative(output: Double, target: Double): Double {
-        val clippedOutput = max(min(output, 1.0 - EPSILON), EPSILON)
-        return -target / clippedOutput
+        return (output - target)
     }
 
-    override fun totalLoss(outputs: DoubleArray, targets: DoubleArray): Double {
+    override fun loss(outputs: DoubleArray, targets: DoubleArray): Double {
         var totalLoss = 0.0
         for (i in outputs.indices) {
-            totalLoss += loss(outputs[i], targets[i])
+            totalLoss += lossCalcul(outputs[i], targets[i])
         }
-        return 1.0 / outputs.size * totalLoss
+        return totalLoss
     }
 }

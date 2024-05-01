@@ -6,6 +6,12 @@ import kotlin.math.exp
 interface ActivationFunction {
     fun activate(x: Double): Double
     fun derivative(x: Double): Double
+    fun activate(z: DoubleArray): DoubleArray {
+        throw NotImplementedError("Activation not implemented for this activation function")
+    }
+    fun derivative(z: DoubleArray): DoubleArray {
+        throw NotImplementedError("Derivative not implemented for this activation function")
+    }
 }
 
 object Sigmoid : ActivationFunction {
@@ -58,25 +64,43 @@ object Linear : ActivationFunction {
     }
 }
 
-//object Softmax : ActivationFunction() {
-//
-//    override fun activate(x: Double): Double {
-//        return x
-//    }
-//
-//    override fun activate(z: DoubleArray): DoubleArray {
-//        val maxZ = z.maxOrNull() ?: throw IllegalArgumentException("Input array must not be empty")
-//        val expZ = z.map { exp(it - maxZ) }
-//        val sumExpZ = expZ.sum()
-//        return expZ.map { it / sumExpZ }.toDoubleArray()
-//    }
-//
-//    override fun derivative(z: DoubleArray): DoubleArray {
-//        val softmaxZ = activate(z)
-//        val n = softmaxZ.size
-//        val jacobian = DoubleArray(n) { i ->
-//            softmaxZ[i] * (1 - softmaxZ[i])
-//        }
-//        return jacobian
-//    }
-//}
+object Softmax : ActivationFunction {
+    override fun activate(x: Double): Double {
+        return x
+    }
+
+    override fun derivative(x: Double): Double {
+        return x
+    }
+
+    override fun activate(z: DoubleArray): DoubleArray {
+        val expZ = z.map { exp(it) }
+        val sumExpZ = expZ.sum()
+        return expZ.map { it / sumExpZ }.toDoubleArray()
+    }
+
+    override fun derivative(z: DoubleArray): DoubleArray {
+        val n = z.size
+        val jacobian = Array(n) { DoubleArray(n) }
+
+        val softmaxZ = activate(z)
+
+        for (i in 0 until n) {
+            for (j in 0 until n) {
+                jacobian[i][j] = if (i == j) softmaxZ[i] * (1 - softmaxZ[j]) else -softmaxZ[i] * softmaxZ[j]
+            }
+        }
+
+        // Calculer les dérivées par rapport à chaque sortie
+        val derivatives = DoubleArray(n)
+        for (i in 0 until n) {
+            var derivativeSum = 0.0
+            for (j in 0 until n) {
+                derivativeSum += jacobian[j][i]
+            }
+            derivatives[i] = derivativeSum
+        }
+
+        return derivatives
+    }
+}

@@ -30,17 +30,17 @@ class Tester {
 
         // BEFORE BACKPROPAGATION
         var output = model.predict(input)
-        var error = model.lossFunction.totalLoss(output, expected)
+        var error = model.lossFunction.loss(output, expected)
         println("Mean squared error: $error")
         for (i in expected.indices) {
             println("Output: ${output[i]} : Expected: ${expected[i]} -> Error: ${expected[i] - output[i]}")
         }
 
-        model.compile(expected)
+        model.stochasticGradientDescent(expected)
 
         // AFTER BACKPROPAGATION
         output = model.predict(input)
-        error = model.lossFunction.totalLoss(output, expected)
+        error = model.lossFunction.loss(output, expected)
         println("Mean squared error: $error")
         for (i in expected.indices) {
             println("Output: ${output[i]} : Expected: ${expected[i]} -> Error: ${expected[i] - output[i]}")

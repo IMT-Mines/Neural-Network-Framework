@@ -48,7 +48,7 @@ class BinaryClassification {
         // Create the model
         val model = NeuralNetwork(learningRate = 0.001, lossFunction = BinaryCrossEntropy)
         model.addLayer(Layer(33))
-        model.addLayer(Layer(33, ReLU))
+        model.addLayer(Layer(4, ReLU))
         model.addLayer(Layer(4, ReLU))
         model.addLayer(Layer(1, Sigmoid))
         model.initialize()
@@ -73,12 +73,12 @@ class BinaryClassification {
                 val target = sample.second
                 val outputs = model.predict(inputs)
 
-                model.compile(target)
+                model.stochasticGradientDescent(target)
 
                 if (Math.round(outputs[0]).toDouble() == target[0]) {
                     accuracy[index] = 1.0
                 }
-                totalLoss += model.lossFunction.totalLoss(outputs, target)
+                totalLoss += model.lossFunction.loss(outputs, target)
             }
             accuracyChart[epoch] = accuracy.average()
             lossChart[epoch] = totalLoss / data.size()
