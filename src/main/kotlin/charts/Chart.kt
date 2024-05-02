@@ -12,7 +12,12 @@ class Chart {
 
     companion object {
         fun lineChart(
-            datas: MutableMap<Int, Double>, title: String, xLabel: String, yLabel: String, chartColor: Color = Color.BLUE) {
+            datas: MutableMap<Int, Double>,
+            title: String,
+            xLabel: String,
+            yLabel: String,
+            chartColor: Color = Color.BLUE
+        ) {
             val x = datas.keys.toList()
             val y = datas.values.toList()
             val dataFrameOf = dataFrameOf(xLabel to x.toList(), yLabel to y.toList())
@@ -23,6 +28,35 @@ class Chart {
                     color = chartColor
                 }
                 layout.title = title
+            }.save("$title.png")
+        }
+
+        fun multiLineChart(
+            datas: List<MutableMap<Int, Double>>,
+            title: String,
+            iterationKey: String,
+            valueKey: String,
+            weightKey: String
+        ) {
+            val dataset = mutableMapOf<String, List<Any>>()
+
+            for ((index, data) in datas.withIndex()) {
+                val prefix = "$weightKey $index"
+                dataset[iterationKey] = data.keys.toList() + (dataset[iterationKey] ?: emptyList())
+                dataset[valueKey] = data.values.toList() + (dataset[valueKey] ?: emptyList())
+                dataset[weightKey] = (0 until data.size).map { "$prefix" } + (dataset[weightKey] ?: emptyList())
+            }
+
+            dataset.plot {
+                groupBy(weightKey) {
+                    line {
+                        x(iterationKey)
+                        y(valueKey)
+                        color(weightKey)
+                    }
+                }
+                layout.title = title
+                layout.size = 1200 to 800
             }.save("$title.png")
         }
     }

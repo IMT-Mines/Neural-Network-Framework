@@ -6,11 +6,11 @@ class Layer(
     private var useBias: Boolean = false
 ) {
 
-    var neurons: Array<Neuron> = Array(nbNeurons) { Neuron(activationFunction) }
+    var neurons: Array<Neuron> = Array(nbNeurons) { Neuron() }
 
     fun initialize(nbInputs: Int = 0) {
         for (i in neurons.indices) {
-            val neuron = Neuron(activationFunction, useBias)
+            val neuron = Neuron(useBias)
             neuron.initialize(nbInputs)
             neurons[i] = neuron
         }

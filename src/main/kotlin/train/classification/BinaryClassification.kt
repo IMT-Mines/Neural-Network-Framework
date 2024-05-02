@@ -1,12 +1,15 @@
 package main.kotlin.train.classification
 
 import main.kotlin.charts.Chart
+import main.kotlin.debug.DebugTools
 import main.kotlin.network.*
 import main.kotlin.train.Data
 import main.kotlin.train.DataLoader
 import org.jetbrains.kotlinx.kandy.util.color.Color
 
 class BinaryClassification {
+
+    private lateinit var debugTools: DebugTools
 
     /**
      * This function is used to classify the sonar dataset
@@ -52,10 +55,13 @@ class BinaryClassification {
         model.addLayer(Layer(4, ReLU))
         model.addLayer(Layer(1, Sigmoid))
         model.initialize()
+        debugTools = DebugTools(model)
 
         train(model, 1000, train)
 
         model.save("src/main/resources/ionosphereModel.txt")
+
+        debugTools.printWeightsOfNeuralNetwork()
 
         test(model, test)
     }
@@ -65,6 +71,7 @@ class BinaryClassification {
         val lossChart: MutableMap<Int, Double> = mutableMapOf()
         val accuracyChart: MutableMap<Int, Double> = mutableMapOf()
         for (epoch in 1..epochs) {
+            debugTools.archiveWeights()
             val accuracy = DoubleArray(data.size())
             var totalLoss = 0.0
             for (index in 0..<data.size()) {

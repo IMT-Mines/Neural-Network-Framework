@@ -1,5 +1,6 @@
 package main.kotlin
 
+import main.kotlin.charts.Chart
 import main.kotlin.network.CategoricalCrossEntropy
 import main.kotlin.network.MeanSquaredError
 import main.kotlin.network.Sigmoid
@@ -10,7 +11,7 @@ import main.kotlin.train.classification.MultiClassification
 
 fun main() {
     val binaryClassification = BinaryClassification()
-    binaryClassification.sonarClassification()
+    binaryClassification.ionosphereClassification()
 
 //    val multiClassification = MultiClassification()
 //    multiClassification.irisClassification()

@@ -4,7 +4,7 @@ import java.io.File
 
 class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunction = SquaredError) {
 
-    private val layers = mutableListOf<Layer>()
+    val layers = mutableListOf<Layer>()
 
     fun predict(inputs: DoubleArray): DoubleArray {
         for (i in 0..<layers.first().neurons.size) {
@@ -27,7 +27,6 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
 
     /**
      * This function is used to train the neural network, it uses the backpropagation algorithm
-     * TODO COmprendre pourquoi le softmax ne fonctionne pas
      */
     fun stochasticGradientDescent(targets: DoubleArray) {
 
@@ -36,17 +35,17 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         for (neuronIndex in layers.last().neurons.indices) {
             val neuron = layers.last().neurons[neuronIndex]
             for (weightIndex in neuron.weights.indices) {
+//                println("target: ${targets[neuronIndex]} output: ${neuron.output}")
                 val outputError = this.lossFunction.derivative(neuron.output, targets[neuronIndex])
 
                 neuron.delta = outputError * outputs[neuronIndex]
-                //println("Partial error: $outputError, Derivative: ${outputs[neuronIndex]}")
+//                println("Partial error: $outputError, Derivative: ${outputs[neuronIndex]}")
 
                 val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
                 neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
             }
         }
 
-        // TODO ENLEVER LE REVERSED
         val reversedLayers = layers.reversed()
         for (layerIndex in 1..<reversedLayers.size - 1) {
 

@@ -1,12 +1,15 @@
 package main.kotlin.train.classification
 
 import main.kotlin.charts.Chart
+import main.kotlin.debug.DebugTools
 import main.kotlin.network.*
 import main.kotlin.train.Data
 import main.kotlin.train.DataLoader
 import org.jetbrains.kotlinx.kandy.util.color.Color
 
 class MultiClassification {
+
+    private lateinit var debugTools: DebugTools
 
     /**
      * This function is used to classify the iris dataset
@@ -27,10 +30,12 @@ class MultiClassification {
         model.addLayer(Layer(10, ReLU))
         model.addLayer(Layer(3, Softmax))
         model.initialize()
+        debugTools = DebugTools(model)
 
         train(model, 1000, train)
 
         model.save("src/main/resources/irisModel.txt")
+        debugTools.printWeightsOfNeuralNetwork()
 
         test(model, test)
     }
@@ -40,6 +45,7 @@ class MultiClassification {
         val lossChart: MutableMap<Int, Double> = mutableMapOf()
         val accuracyChart: MutableMap<Int, Double> = mutableMapOf()
         for (epoch in 0..<epochs) {
+            debugTools.archiveWeights()
             val accuracy = DoubleArray(data.size())
             var totalLoss = 0.0
             for (index in 0..<data.size()) {
