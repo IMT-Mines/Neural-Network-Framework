@@ -16,7 +16,8 @@ class Chart {
             title: String,
             xLabel: String,
             yLabel: String,
-            chartColor: Color = Color.BLUE
+            chartColor: Color = Color.BLUE,
+            path: String = "src/main/resources/plots/"
         ) {
             val x = datas.keys.toList()
             val y = datas.values.toList()
@@ -28,7 +29,7 @@ class Chart {
                     color = chartColor
                 }
                 layout.title = title
-            }.save("$title.png")
+            }.save("$title.png", path = path)
         }
 
         fun multiLineChart(
@@ -36,7 +37,8 @@ class Chart {
             title: String,
             iterationKey: String,
             valueKey: String,
-            weightKey: String
+            weightKey: String,
+            path: String = "src/main/resources/plots/"
         ) {
             val dataset = mutableMapOf<String, List<Any>>()
 
@@ -57,7 +59,7 @@ class Chart {
                 }
                 layout.title = title
                 layout.size = 1200 to 800
-            }.save("$title.png")
+            }.save("$title.png", path = path)
         }
     }
 }

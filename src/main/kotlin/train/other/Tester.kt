@@ -1,32 +1,22 @@
 package main.kotlin.train.other
 
-import main.kotlin.network.BinaryCrossEntropy
-import main.kotlin.network.Layer
-import main.kotlin.network.NeuralNetwork
-import main.kotlin.network.Sigmoid
+import main.kotlin.debug.DebugTools
+import main.kotlin.network.*
 
 
 class Tester {
 
     fun testBackpropagation() {
-        val model = NeuralNetwork(learningRate = 0.001, lossFunction = BinaryCrossEntropy)
-        model.addLayer(Layer(33))
-        model.addLayer(Layer(2, Sigmoid, false))
-        model.addLayer(Layer(5, Sigmoid, false))
+        val model = NeuralNetwork(learningRate = 1.0, lossFunction = MeanSquaredError)
+        model.addLayer(Layer(6))
+        model.addLayer(Layer(10, ReLU))
+        model.addLayer(Layer(3, Softmax))
         model.initialize()
-        model.save("model.txt")
 
+        val debugTools = DebugTools(model)
 
-        val input: DoubleArray = DoubleArray(33) { 0.0 }
-        val expected: DoubleArray = DoubleArray(5) { 0.0 }
-
-        for (i in 0..<33) {
-            input[i] = Math.random()
-        }
-
-        for (i in 0..<5) {
-            expected[i] = Math.random()
-        }
+        val input: DoubleArray = doubleArrayOf(0.2, 0.8, 0.5, 0.1, 0.3, 0.1)
+        val expected: DoubleArray = doubleArrayOf(0.1, 0.0, 0.0)
 
         // BEFORE BACKPROPAGATION
         var output = model.predict(input)
@@ -36,7 +26,12 @@ class Tester {
             println("Output: ${output[i]} : Expected: ${expected[i]} -> Error: ${expected[i] - output[i]}")
         }
 
-        model.stochasticGradientDescent(expected)
+        for (i in 0..<10) {
+            debugTools.archiveWeights()
+            debugTools.archiveDelta()
+            model.predict(input)
+            model.stochasticGradientDescent(expected)
+        }
 
         // AFTER BACKPROPAGATION
         output = model.predict(input)
@@ -45,7 +40,7 @@ class Tester {
         for (i in expected.indices) {
             println("Output: ${output[i]} : Expected: ${expected[i]} -> Error: ${expected[i] - output[i]}")
         }
-
-        model.save("model.txt")
+        debugTools.printDeltas()
+        debugTools.printWeights()
     }
 }

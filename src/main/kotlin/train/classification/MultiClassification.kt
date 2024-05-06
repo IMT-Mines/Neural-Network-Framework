@@ -1,15 +1,9 @@
 package main.kotlin.train.classification
 
-import main.kotlin.charts.Chart
-import main.kotlin.debug.DebugTools
 import main.kotlin.network.*
-import main.kotlin.train.Data
 import main.kotlin.train.DataLoader
-import org.jetbrains.kotlinx.kandy.util.color.Color
 
 class MultiClassification {
-
-    private lateinit var debugTools: DebugTools
 
     /**
      * This function is used to classify the iris dataset
@@ -30,67 +24,10 @@ class MultiClassification {
         model.addLayer(Layer(10, ReLU))
         model.addLayer(Layer(3, Softmax))
         model.initialize()
-        debugTools = DebugTools(model)
 
-        train(model, 1000, train)
-
+        // Train and test the model
+        model.fit(1000, train)
         model.save("src/main/resources/irisModel.txt")
-        debugTools.printWeightsOfNeuralNetwork()
-
-        test(model, test)
-    }
-
-    private fun train(model: NeuralNetwork, epochs: Int, data: Data) {
-        println("\n======================= TRAINING =======================\n")
-        val lossChart: MutableMap<Int, Double> = mutableMapOf()
-        val accuracyChart: MutableMap<Int, Double> = mutableMapOf()
-        for (epoch in 0..<epochs) {
-            debugTools.archiveWeights()
-            val accuracy = DoubleArray(data.size())
-            var totalLoss = 0.0
-            for (index in 0..<data.size()) {
-                val sample = data.get(index)
-                val inputs = sample.first
-                val target = sample.second
-                model.stochasticGradientDescent(target)
-
-                val outputs = model.predict(inputs)
-
-                val maxOutputIndex = outputs.withIndex().maxByOrNull { it.value }?.index
-                val targetIndex = target.withIndex().maxByOrNull { it.value }?.index
-                if (maxOutputIndex == targetIndex) {
-                    accuracy[index] = 1.0
-                }
-                totalLoss += model.lossFunction.loss(outputs, target)
-            }
-            accuracyChart[epoch] = accuracy.average()
-            lossChart[epoch] = totalLoss / data.size()
-            println(
-                "Epoch: %d | Training Loss: %10.4f | Accuracy: %10.2f".format(
-                    epoch,
-                    totalLoss / data.size(),
-                    accuracy.average()
-                )
-            )
-        }
-        Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN)
-        Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss")
-    }
-
-    private fun test(model: NeuralNetwork, data: Data) {
-        println("\n======================= TESTING =======================\n")
-        for (index in 0..<data.size()) {
-            val sample = data.get(index)
-            val inputs = sample.first
-            val target = sample.second
-            val output = model.predict(inputs)
-
-            println(
-                "Output: %s | Expected: %s".format(
-                    output.joinToString { it.toString() },
-                    target.joinToString { it.toString() },
-                )
-            )
-        }
+        model.test(test)
     }
 }

@@ -1,10 +1,9 @@
 package main.kotlin.network
 
-class Neuron(private val useBias: Boolean = true) {
+class Neuron(private val bias: Double) {
     var weights: DoubleArray = doubleArrayOf()
     var output: Double = 0.0
     var delta: Double = 0.0
-    private var bias: Double = 0.0
 
     fun initialize(nbInputs: Int = 0, values: DoubleArray = doubleArrayOf()) {
         if (values.isNotEmpty()) {
@@ -12,7 +11,6 @@ class Neuron(private val useBias: Boolean = true) {
             return
         }
         weights = DoubleArray(nbInputs) { Math.random() * 2 - 1 }
-        bias = if (useBias) Math.random() * 2 - 1 else 0.0
     }
 
     fun compute(inputs: DoubleArray): Double {
