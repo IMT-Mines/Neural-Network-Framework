@@ -92,12 +92,9 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
                 )
             )
         }
-        if (debug) {
-            debugTools.printDeltas()
-            debugTools.printWeights()
-        }
-        Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources")
-        Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources")
+        if (debug) debugTools.run { debugTools.printDeltas(); debugTools.printWeights() }
+        Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources/plots")
+        Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
     }
 
     fun test(data: Data) {

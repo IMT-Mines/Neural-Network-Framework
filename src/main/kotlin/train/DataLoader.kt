@@ -28,6 +28,26 @@ class DataLoader {
             return data
         }
 
+        fun loadDigits(): Data {
+            val data = Data()
+            val file = File("src/main/resources/digits.csv")
+            val scanner = Scanner(file)
+            scanner.nextLine()
+            while (scanner.hasNextLine()) {
+                val line = scanner.nextLine()
+                val values = line.split(",")
+                val features = DoubleArray(784) { 0.0 }
+                for (i in 1..784) {
+                    features[i - 1] = values[i].toDouble()
+                }
+                val label = values[0]
+                val target = DoubleArray(10) { 0.0 }
+                target[label.toInt()] = 1.0
+                data.add(features, target)
+            }
+            return data
+        }
+
         fun loadIris(): Data {
             val data = Data()
             val file = File("src/main/resources/iris.data")
