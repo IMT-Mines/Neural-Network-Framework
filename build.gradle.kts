@@ -11,6 +11,7 @@ repositories {
 }
 
 dependencies {
+    implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlin-statistics-jvm:0.2.1")
     testImplementation(kotlin("test"))
 }

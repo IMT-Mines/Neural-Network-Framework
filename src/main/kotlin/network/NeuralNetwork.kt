@@ -32,7 +32,7 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
     /**
      * This function is used to train the neural network, it uses the backpropagation algorithm
      */
-    fun stochasticGradientDescent(targets: DoubleArray) {
+    private fun stochasticGradientDescent(targets: DoubleArray) {
         val outputsLayerDerivative = layers.last().getDerivativeOfEachNeuron()
         for (neuronIndex in layers.last().neurons.indices) {
             val neuron = layers.last().neurons[neuronIndex]
@@ -107,7 +107,6 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
             val outputs = this.predict(inputs)
 
             accuracy += getAccuracy(outputs, target)
-
             println(
                 "Output: ${outputs.joinToString { "%.2f".format(it) }} | Target: ${
                     target.joinToString {
@@ -131,13 +130,22 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         var line = bufferedReader.readLine()
         while (line != null) {
             val nbNeurons = line.toInt()
-            val layer = Layer(nbNeurons)
-            layer.initialize()
+            val activationFunctionName = bufferedReader.readLine()
+            val activationFunction = when (activationFunctionName) {
+                "ReLU" -> ReLU
+                "Sigmoid" -> Sigmoid
+                "Softmax" -> Softmax
+                "Tanh" -> Tanh
+                "LeakyReLU" -> LeakyReLU
+                else -> Linear
+            }
+            val layer = Layer(nbNeurons, activationFunction)
+            layer.bias = bufferedReader.readLine().toDouble()
             for (i in 0..<nbNeurons) {
                 line = bufferedReader.readLine()
                 if (line.isEmpty()) continue
                 val weights = line.split(" ").map { it.toDouble() }.toDoubleArray()
-                layer.neurons[i].initialize(values = weights)
+                layer.neurons[i].weights = weights
             }
             layers.add(layer)
             line = bufferedReader.readLine()
@@ -150,6 +158,8 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         val bufferWriter = file.bufferedWriter()
         for (layer in layers) {
             bufferWriter.write("${layer.neurons.size}\n")
+            layer.activationFunction::class.simpleName?.let { bufferWriter.write("$it\n") }
+            bufferWriter.write("${layer.bias}\n")
             for (neuron in layer.neurons) {
                 val str = neuron.weights.joinToString(" ")
                 bufferWriter.write(str)
@@ -161,12 +171,21 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
 
     override fun toString(): String {
         val sb = StringBuilder()
+        sb.append("_________________________________________________________________")
+        sb.append("\nLayer                     Output Shape          Weights")
+        sb.append("\n=================================================================")
         for (i in layers.indices) {
-            sb.append("Layer $i\n")
-            // name of the activation function
-            sb.append("Activation function: ${layers[i].activationFunction}\n")
-            sb.append(layers[i].toString())
-            sb.append("\n")
+            val nbLayerWeights = layers[i].neurons.first().weights.size * layers[i].neurons.size
+            sb.append(
+                "\nLayer_%d (Dense)           (%s, %d)              %d"
+                    .format(
+                        i,
+                        layers[i].activationFunction::class.simpleName,
+                        layers[i].neurons.size,
+                        nbLayerWeights
+                    )
+            )
+            sb.append("\n_________________________________________________________________")
         }
         return sb.toString()
     }

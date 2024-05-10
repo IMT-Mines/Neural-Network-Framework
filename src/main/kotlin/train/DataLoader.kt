@@ -7,6 +7,33 @@ class DataLoader {
 
     companion object {
 
+        fun loadSeeds(): Data {
+            val data = Data()
+            val file = File("src/main/resources/seeds.data")
+            val scanner = Scanner(file)
+            while (scanner.hasNextLine()) {
+                val line = scanner.nextLine()
+                val values = line.split(",")
+                val features = DoubleArray(7) { 0.0 }
+                for (i in 0..6) {
+                    features[i] = values[i].toDouble()
+                }
+                val label = values[7]
+                when (label) {
+                    "1" -> {
+                        data.add(features, doubleArrayOf(1.0, 0.0, 0.0))
+                    }
+                    "2" -> {
+                        data.add(features, doubleArrayOf(0.0, 1.0, 0.0))
+                    }
+                    "3" -> {
+                        data.add(features, doubleArrayOf(0.0, 0.0, 1.0))
+                    }
+                }
+            }
+            return data
+        }
+
         fun loadSonar(): Data {
             val data = Data()
             val file = File("src/main/resources/sonar.data")
@@ -103,7 +130,7 @@ class DataLoader {
 
 class Data {
 
-    private val features = mutableListOf<DoubleArray>()
+    val features = mutableListOf<DoubleArray>()
     private val labels = mutableListOf<DoubleArray>()
 
     fun add(features: DoubleArray, label: DoubleArray) {
@@ -135,5 +162,23 @@ class Data {
             testData.add(testFeatures[i], testLabels[i])
         }
         return Pair(trainData, testData)
+    }
+
+    fun setDataset(features: List<DoubleArray>, labels: List<DoubleArray>) {
+        this.features.clear()
+        this.labels.clear()
+        this.features.addAll(features)
+        this.labels.addAll(labels)
+    }
+
+    override fun toString(): String {
+        val stringBuilder = StringBuilder()
+        for (i in 0..<features.size) {
+            stringBuilder.append(features[i].contentToString())
+            stringBuilder.append(" -> ")
+            stringBuilder.append(labels[i].contentToString())
+            stringBuilder.append("\n")
+        }
+        return stringBuilder.toString()
     }
 }

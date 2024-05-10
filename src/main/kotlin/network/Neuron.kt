@@ -1,20 +1,16 @@
 package main.kotlin.network
 
-class Neuron(private val bias: Double) {
+class Neuron {
     var weights: DoubleArray = doubleArrayOf()
     var output: Double = 0.0
     var delta: Double = 0.0
 
-    fun initialize(nbInputs: Int = 0, values: DoubleArray = doubleArrayOf()) {
-        if (values.isNotEmpty()) {
-            weights = values
-            return
-        }
+    fun initialize(nbInputs: Int = 0) {
         weights = DoubleArray(nbInputs) { Math.random() * 2 - 1 }
     }
 
     fun compute(inputs: DoubleArray): Double {
-        var output = bias
+        var output = 0.0
         for (i in inputs.indices) {
             output += inputs[i] * weights[i]
         }
@@ -27,6 +23,6 @@ class Neuron(private val bias: Double) {
             weights.joinToString {
                 it.toString()
             }
-        }, bias=$bias, value=$output"
+        }, value=$output"
     }
 }

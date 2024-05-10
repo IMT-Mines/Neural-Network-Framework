@@ -1,6 +1,8 @@
 package main.kotlin
 
+import main.kotlin.train.classification.BinaryClassification
 import main.kotlin.train.classification.MultiClassification
+import main.kotlin.train.other.Tester
 
 
 fun main() {
