@@ -1,8 +1,8 @@
 package main.kotlin.network
 
 class Layer(
-    nbNeurons: Int,
-    var activationFunction: ActivationFunction = Linear,
+    var nbNeurons: Int,
+    var activation: Activation = Linear,
     private var useBias: Boolean = true
 ) {
 
@@ -19,11 +19,11 @@ class Layer(
     }
 
     fun compute(inputs: DoubleArray): DoubleArray {
-        var outputs = DoubleArray(neurons.size)
+        var outputs = DoubleArray(nbNeurons)
         for (i in neurons.indices) {
             outputs[i] = neurons[i].compute(inputs) + bias
         }
-        outputs = activationFunction.activate(outputs)
+        outputs = activation.activate(outputs)
         for (i in neurons.indices) {
             neurons[i].output = outputs[i]
         }
@@ -31,11 +31,11 @@ class Layer(
     }
 
     fun getDerivativeOfEachNeuron(): DoubleArray {
-        val derivatives = DoubleArray(neurons.size)
+        val derivatives = DoubleArray(nbNeurons)
         for (i in neurons.indices) {
             derivatives[i] = neurons[i].output
         }
-        return activationFunction.derivative(derivatives)
+        return activation.derivative(derivatives)
     }
 
     override fun toString(): String {

@@ -5,14 +5,14 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-interface LossFunction {
+interface Loss {
     fun lossCalcul(output: Double, target: Double): Double
     fun derivative(output: Double, target: Double): Double
     fun loss(outputs: DoubleArray, targets: DoubleArray): Double
 }
 
-object SquaredError : LossFunction {
-    override fun lossCalcul(output: Double, target: Double): Double {
+object SquaredError : Loss {
+    override fun lossCalcul (output: Double, target: Double): Double {
         return (1.0 / 2.0) * (output - target).pow(2.0)
     }
 
@@ -29,7 +29,7 @@ object SquaredError : LossFunction {
     }
 }
 
-object MeanSquaredError : LossFunction {
+object MeanSquaredError : Loss {
     override fun lossCalcul(output: Double, target: Double): Double {
         return (output - target).pow(2.0)
     }
@@ -47,7 +47,7 @@ object MeanSquaredError : LossFunction {
     }
 }
 
-object BinaryCrossEntropy : LossFunction {
+object BinaryCrossEntropy : Loss {
     private const val EPSILON = 1e-15
 
     override fun lossCalcul(output: Double, target: Double): Double {
@@ -69,7 +69,7 @@ object BinaryCrossEntropy : LossFunction {
     }
 }
 
-object CategoricalCrossEntropy : LossFunction {
+object CategoricalCrossEntropy : Loss {
     private const val EPSILON = 1e-15
 
     override fun lossCalcul(output: Double, target: Double): Double {

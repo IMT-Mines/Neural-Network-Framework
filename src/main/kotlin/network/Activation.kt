@@ -4,12 +4,12 @@ import kotlin.math.exp
 import kotlin.math.tanh
 
 
-interface ActivationFunction {
+interface Activation {
     fun activate(z: DoubleArray): DoubleArray
     fun derivative(z: DoubleArray): DoubleArray
 }
 
-object Sigmoid : ActivationFunction {
+object Sigmoid : Activation {
     override fun derivative(z: DoubleArray): DoubleArray {
         return z.map { it * (1 - it) }.toDoubleArray()
     }
@@ -19,7 +19,7 @@ object Sigmoid : ActivationFunction {
     }
 }
 
-object ReLU : ActivationFunction {
+object ReLU : Activation {
     override fun derivative(z: DoubleArray): DoubleArray {
         return z.map { if (it > 0) 1.0 else 0.0 }.toDoubleArray()
     }
@@ -29,7 +29,7 @@ object ReLU : ActivationFunction {
     }
 }
 
-object LeakyReLU : ActivationFunction {
+object LeakyReLU : Activation {
     override fun derivative(z: DoubleArray): DoubleArray {
         return z.map { if (it > 0) 1.0 else 0.01 }.toDoubleArray()
     }
@@ -39,7 +39,7 @@ object LeakyReLU : ActivationFunction {
     }
 }
 
-object Tanh : ActivationFunction {
+object Tanh : Activation {
     override fun derivative(z: DoubleArray): DoubleArray {
         return z.map { 1 - it * it }.toDoubleArray()
     }
@@ -49,7 +49,7 @@ object Tanh : ActivationFunction {
     }
 }
 
-object Linear : ActivationFunction {
+object Linear : Activation {
     override fun derivative(z: DoubleArray): DoubleArray {
         return z
     }
@@ -59,7 +59,7 @@ object Linear : ActivationFunction {
     }
 }
 
-object Softmax : ActivationFunction {
+object Softmax : Activation {
 
     override fun activate(z: DoubleArray): DoubleArray {
         val max = z.maxOrNull() ?: 0.0

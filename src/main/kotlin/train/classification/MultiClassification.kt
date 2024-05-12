@@ -1,6 +1,5 @@
 package main.kotlin.train.classification
 
-import main.kotlin.debug.DebugTools
 import main.kotlin.network.*
 import main.kotlin.train.DataLoader
 import main.kotlin.utils.Utils
@@ -21,7 +20,7 @@ class MultiClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.01, lossFunction = CategoricalCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.01, loss = CategoricalCrossEntropy)
         model.addLayer(Layer(4))
         model.addLayer(Layer(20, ReLU))
         model.addLayer(Layer(10, ReLU))
@@ -48,7 +47,7 @@ class MultiClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, lossFunction = BinaryCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
         model.addLayer(Layer(784))
         model.addLayer(Layer(784, ReLU))
         model.addLayer(Layer(100, ReLU))
@@ -73,7 +72,7 @@ class MultiClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, lossFunction = CategoricalCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.001, loss = CategoricalCrossEntropy)
         model.addLayer(Layer(7))
         model.addLayer(Layer(10, ReLU))
         model.addLayer(Layer(10, ReLU))

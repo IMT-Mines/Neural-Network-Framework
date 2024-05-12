@@ -1,6 +1,6 @@
 package main.kotlin.train.other
 
-import main.kotlin.debug.DebugTools
+import main.kotlin.utils.DebugTools
 import main.kotlin.network.*
 import main.kotlin.train.Data
 import kotlin.math.floor
@@ -12,7 +12,7 @@ class Tester {
         val inputSize = 6
         val outputSize = 3
 
-        val model = NeuralNetwork(learningRate = 0.001, lossFunction = CategoricalCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.001, loss = CategoricalCrossEntropy)
         model.addLayer(Layer(inputSize))
         model.addLayer(Layer(1000, ReLU))
         model.addLayer(Layer(1000, ReLU))

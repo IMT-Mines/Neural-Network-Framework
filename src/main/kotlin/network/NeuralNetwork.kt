@@ -1,17 +1,17 @@
 package main.kotlin.network
 
 import main.kotlin.charts.Chart
-import main.kotlin.debug.DebugTools
+import main.kotlin.utils.DebugTools
 import main.kotlin.train.Data
 import org.jetbrains.kotlinx.kandy.util.color.Color
 import java.io.File
 
-class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunction = SquaredError) {
+class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredError) {
 
     val layers = mutableListOf<Layer>()
 
     fun predict(inputs: DoubleArray): DoubleArray {
-        for (i in 0..<layers.first().neurons.size) {
+        for (i in 0..<layers.first().nbNeurons) {
             layers.first().neurons[i].output = inputs[i]
         }
         var outputs = inputs
@@ -25,7 +25,7 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         if (layers.size < 2) throw IllegalArgumentException("The number of layers must be greater than 1")
         layers.first().initialize()
         for (i in 1..<layers.size) {
-            layers[i].initialize(layers[i - 1].neurons.size)
+            layers[i].initialize(layers[i - 1].nbNeurons)
         }
     }
 
@@ -37,7 +37,7 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         for (neuronIndex in layers.last().neurons.indices) {
             val neuron = layers.last().neurons[neuronIndex]
             for (weightIndex in neuron.weights.indices) {
-                val outputError = this.lossFunction.derivative(neuron.output, targets[neuronIndex])
+                val outputError = this.loss.derivative(neuron.output, targets[neuronIndex])
                 neuron.delta = outputError * outputsLayerDerivative[neuronIndex]
                 val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
                 neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
@@ -80,7 +80,7 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
 
                 accuracy[index] = getAccuracy(outputs, target)
 
-                totalLoss += this.lossFunction.loss(outputs, target)
+                totalLoss += this.loss.loss(outputs, target)
             }
             accuracyChart[epoch] = accuracy.average()
             lossChart[epoch] = totalLoss / data.size()
@@ -157,8 +157,8 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         val file = File(path)
         val bufferWriter = file.bufferedWriter()
         for (layer in layers) {
-            bufferWriter.write("${layer.neurons.size}\n")
-            layer.activationFunction::class.simpleName?.let { bufferWriter.write("$it\n") }
+            bufferWriter.write("${layer.nbNeurons}\n")
+            layer.activation::class.simpleName?.let { bufferWriter.write("$it\n") }
             bufferWriter.write("${layer.bias}\n")
             for (neuron in layer.neurons) {
                 val str = neuron.weights.joinToString(" ")
@@ -175,13 +175,13 @@ class NeuralNetwork(private var learningRate: Double, var lossFunction: LossFunc
         sb.append("\nLayer                     Output Shape          Weights")
         sb.append("\n=================================================================")
         for (i in layers.indices) {
-            val nbLayerWeights = layers[i].neurons.first().weights.size * layers[i].neurons.size
+            val nbLayerWeights = layers[i].neurons.first().weights.size * layers[i].nbNeurons
             sb.append(
                 "\nLayer_%d (Dense)           (%s, %d)              %d"
                     .format(
                         i,
-                        layers[i].activationFunction::class.simpleName,
-                        layers[i].neurons.size,
+                        layers[i].activation::class.simpleName,
+                        layers[i].nbNeurons,
                         nbLayerWeights
                     )
             )

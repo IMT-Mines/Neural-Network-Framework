@@ -17,7 +17,7 @@ class BinaryClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, lossFunction = BinaryCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
         model.addLayer(Layer(60))
         model.addLayer(Layer(60, ReLU))
         model.addLayer(Layer(10, ReLU))
@@ -42,7 +42,7 @@ class BinaryClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, lossFunction = BinaryCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
         model.addLayer(Layer(33))
         model.addLayer(Layer(33, ReLU))
         model.addLayer(Layer(4, ReLU))
