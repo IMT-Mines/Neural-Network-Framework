@@ -10,7 +10,7 @@ fun main() {
 //    binaryClassification.ionosphereClassification()
 
     val multiClassification = MultiClassification()
-    multiClassification.irisClassification()
+    multiClassification.digitsClassification()
 
 //    val tester = Tester()
 //    tester.testBackpropagation()

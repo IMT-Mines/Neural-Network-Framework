@@ -45,6 +45,7 @@ class MultiClassification {
         val data = DataLoader.loadDigits()
         Utils.normalizeZScore(data)
         val (train, test) = data.split(0.8)
+        println(train.size())
 
         // Create the model
         val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
@@ -55,7 +56,7 @@ class MultiClassification {
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train)
+        model.fit(1000, train, batchSize = 64)
         model.save("src/main/resources/digitsModel.txt")
         model.test(test)
     }

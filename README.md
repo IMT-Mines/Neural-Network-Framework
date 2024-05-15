@@ -30,13 +30,13 @@ val (train, test) = data.split(0.8)
 The model should be created by the NeuralNetwork class. You must specify the learning rate and the loss function.
 
 ```kotlin
-val model = NeuralNetwork(0.001, LossFunction.CROSS_ENTROPY)
+val model = NeuralNetwork(0.001, CategoricalCrossEntropy)
 ```
 
 To add layers, you should use the addLayer method and specify the number of neurons, the activation function and bias.
 
 ```kotlin
-model.addLayer(10, ActivationFunction.ReLU, true)
+model.addLayer(10, ReLU, true)
 ```
 
 **Warning:** The input layer is not implicit (you can just specify the number of neurons).
@@ -85,6 +85,7 @@ debugTools.printDeltas()
 In the future, I would like to add more features like :
 
 - L1 and L2 regularization
-- Normalization
 - Adam optimizer
 - Initialization methods
+- Bias Gestion
+- Early stopping

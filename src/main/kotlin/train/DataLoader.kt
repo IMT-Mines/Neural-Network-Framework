@@ -164,6 +164,16 @@ class Data {
         return Pair(trainData, testData)
     }
 
+    fun shuffle() {
+        val zipped = features.zip(labels).shuffled()
+        features.clear()
+        labels.clear()
+        for (pair in zipped) {
+            features.add(pair.first)
+            labels.add(pair.second)
+        }
+    }
+
     fun setDataset(features: List<DoubleArray>, labels: List<DoubleArray>) {
         this.features.clear()
         this.labels.clear()

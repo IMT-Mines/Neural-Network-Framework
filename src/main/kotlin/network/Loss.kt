@@ -8,7 +8,7 @@ import kotlin.math.pow
 interface Loss {
     fun lossCalcul(output: Double, target: Double): Double
     fun derivative(output: Double, target: Double): Double
-    fun loss(outputs: DoubleArray, targets: DoubleArray): Double
+    fun averageLoss(outputs: DoubleArray, targets: DoubleArray): Double
 }
 
 object SquaredError : Loss {
@@ -20,7 +20,7 @@ object SquaredError : Loss {
         return output - target
     }
 
-    override fun loss(outputs: DoubleArray, targets: DoubleArray): Double {
+    override fun averageLoss(outputs: DoubleArray, targets: DoubleArray): Double {
         var totalLoss = 0.0
         for (i in outputs.indices) {
             totalLoss += lossCalcul(outputs[i], targets[i])
@@ -38,7 +38,7 @@ object MeanSquaredError : Loss {
         return output - target
     }
 
-    override fun loss(outputs: DoubleArray, targets: DoubleArray): Double {
+    override fun averageLoss(outputs: DoubleArray, targets: DoubleArray): Double {
         var totalLoss = 0.0
         for (i in outputs.indices) {
             totalLoss += lossCalcul(outputs[i], targets[i])
@@ -60,7 +60,7 @@ object BinaryCrossEntropy : Loss {
         return (clippedOutput - target) / (clippedOutput * (1 - clippedOutput))
     }
 
-    override fun loss(outputs: DoubleArray, targets: DoubleArray): Double {
+    override fun averageLoss(outputs: DoubleArray, targets: DoubleArray): Double {
         var totalLoss = 0.0
         for (i in outputs.indices) {
             totalLoss += lossCalcul(outputs[i], targets[i])
@@ -81,7 +81,7 @@ object CategoricalCrossEntropy : Loss {
         return (output - target)
     }
 
-    override fun loss(outputs: DoubleArray, targets: DoubleArray): Double {
+    override fun averageLoss(outputs: DoubleArray, targets: DoubleArray): Double {
         var totalLoss = 0.0
         for (i in outputs.indices) {
             totalLoss += lossCalcul(outputs[i], targets[i])
