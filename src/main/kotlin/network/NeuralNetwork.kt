@@ -166,7 +166,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                 else -> Linear
             }
             val layer = Layer(nbNeurons, activationFunction)
-            layer.bias = bufferedReader.readLine().toDouble()
             for (i in 0..<nbNeurons) {
                 line = bufferedReader.readLine()
                 if (line.isEmpty()) continue
@@ -185,7 +184,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
         for (layer in layers) {
             bufferWriter.write("${layer.nbNeurons}\n")
             layer.activation::class.simpleName?.let { bufferWriter.write("$it\n") }
-            bufferWriter.write("${layer.bias}\n")
             for (neuron in layer.neurons) {
                 val str = neuron.weights.joinToString(" ")
                 bufferWriter.write(str)

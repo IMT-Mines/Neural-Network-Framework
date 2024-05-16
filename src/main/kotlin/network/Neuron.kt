@@ -2,6 +2,7 @@ package main.kotlin.network
 
 class Neuron(nbInputs: Int) {
     var weights: DoubleArray = DoubleArray(nbInputs)
+    var bias: Double = Math.random() * 0.2
     var output: Double = 0.0
     var delta: Double = 0.0
 
@@ -11,7 +12,7 @@ class Neuron(nbInputs: Int) {
             output += inputs[i] * weights[i]
         }
 
-        this.output = output
+        this.output = output + bias
         return this.output
     }
 

@@ -4,14 +4,11 @@ class Layer(
     var nbNeurons: Int,
     var activation: Activation = Linear,
     var initialization: Initialization = RandomInitialization,
-    private var useBias: Boolean = true
 ) {
 
     var neurons: Array<Neuron> = Array(nbNeurons) { Neuron(0) }
-    internal var bias: Double = 0.0
 
     fun buildLayer(nbInputs: Int = 0) {
-        bias = if (useBias) Math.random() * 2 - 1 else 0.0
         for (i in neurons.indices) {
             val neuron = Neuron(nbInputs)
             neurons[i] = neuron
@@ -22,7 +19,7 @@ class Layer(
     fun compute(inputs: DoubleArray): DoubleArray {
         var outputs = DoubleArray(nbNeurons)
         for (i in neurons.indices) {
-            outputs[i] = neurons[i].compute(inputs) + bias
+            outputs[i] = neurons[i].compute(inputs)
         }
         outputs = activation.activate(outputs)
         for (i in neurons.indices) {
