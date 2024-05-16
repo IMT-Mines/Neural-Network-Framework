@@ -13,6 +13,6 @@ fun main() {
 //    multiClassification.irisClassification()
 
 //    val tester = Tester()
-//    tester.testBackpropagation()
+//    tester.testInitialization()
 }
 
