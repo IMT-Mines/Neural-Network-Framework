@@ -47,7 +47,7 @@ class MultiClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.1, loss = CategoricalCrossEntropy)
         model.addLayer(Layer(784))
         model.addLayer(Layer(784, ReLU))
         model.addLayer(Layer(100, ReLU))
@@ -55,7 +55,7 @@ class MultiClassification {
         model.initialize()
 
         // Train and test the model
-        model.fit(1, train, batchSize = 64)
+        model.fit(10, train, batchSize = 64)
         model.save("src/main/resources/digitsModel.txt")
         model.test(test)
     }

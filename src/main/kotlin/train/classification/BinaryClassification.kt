@@ -51,7 +51,7 @@ class BinaryClassification {
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, batchSize = 1)
+        model.fit(1000, train, batchSize = 2)
         model.save("src/main/resources/ionosphereModel.txt")
         model.test(test)
     }
