@@ -86,7 +86,7 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
         val batchCount = data.size() / batchSize
 
         for (epoch in 0..<epochs) {
-            if (debug) debugTools.run { archiveWeights(); archiveDelta() }
+            if (debug) debugTools.run { archiveWeights(); archiveDelta(); archiveBias() }
             val accuracy = DoubleArray(data.size())
             data.shuffle()
             var totalLoss = 0.0
@@ -118,7 +118,7 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
             )
         }
 
-        if (debug) debugTools.run { debugTools.printDeltas(); debugTools.printWeights() }
+        if (debug) debugTools.run { debugTools.printDeltas(); debugTools.printWeights(); printBias() }
         Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources/plots")
         Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
     }
