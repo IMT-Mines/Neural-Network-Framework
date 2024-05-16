@@ -45,12 +45,12 @@ class BinaryClassification {
         val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
         model.addLayer(Layer(33))
         model.addLayer(Layer(33, ReLU, NormalHeInitialization))
+        model.addLayer(Layer(10, ReLU, NormalHeInitialization))
         model.addLayer(Layer(4, ReLU, NormalHeInitialization))
         model.addLayer(Layer(1, Sigmoid, NormalXavierGlorotInitialization))
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, false)
         model.save("src/main/resources/ionosphereModel.txt")
         model.test(test)
     }

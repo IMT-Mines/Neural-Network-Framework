@@ -1,10 +1,11 @@
 package main.kotlin.network
 
 import main.kotlin.charts.Chart
-import main.kotlin.utils.DebugTools
 import main.kotlin.train.Data
+import main.kotlin.utils.DebugTools
 import org.jetbrains.kotlinx.kandy.util.color.Color
 import java.io.File
+
 
 class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredError) {
 
@@ -45,12 +46,12 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
     /**
      * This function is used to train the neural network, it uses the backpropagation algorithm
      */
-    private fun stochasticGradientDescent(targets: DoubleArray) {
+    private fun gradientDescent(loss: DoubleArray) {
         val outputsLayerDerivative = layers.last().getDerivativeOfEachNeuron()
         for (neuronIndex in layers.last().neurons.indices) {
             val neuron = layers.last().neurons[neuronIndex]
             for (weightIndex in neuron.weights.indices) {
-                val outputError = this.loss.derivative(neuron.output, targets[neuronIndex])
+                neuron.delta = loss[neuronIndex] * outputsLayerDerivative[neuronIndex]
                 val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
                 neuron.delta = outputError * outputsLayerDerivative[neuronIndex]
                 neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
@@ -62,6 +63,7 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
             val outputsDerivatives = reversedLayers[layerIndex].getDerivativeOfEachNeuron()
             for (neuronIndex in reversedLayers[layerIndex].neurons.indices) {
                 val neuron = reversedLayers[layerIndex].neurons[neuronIndex]
+
                 for (weightIndex in neuron.weights.indices) {
                     var partialError = 0.0
                     for (previousLayerNeuron in reversedLayers[layerIndex - 1].neurons.indices) {
@@ -76,25 +78,38 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
         }
     }
 
-    fun fit(epochs: Int, data: Data, debug: Boolean = false) {
+    fun fit(epochs: Int, data: Data, batchSize: Int = 1, debug: Boolean = false) {
+        if (data.size() % batchSize != 0) throw IllegalArgumentException("The batch size must be a multiple of the data size")
+
         val debugTools = DebugTools(this)
         println("\n======================= TRAINING =======================\n")
         val lossChart: MutableMap<Int, Double> = mutableMapOf()
         val accuracyChart: MutableMap<Int, Double> = mutableMapOf()
+
+        val batchCount = data.size() / batchSize
+
         for (epoch in 0..<epochs) {
             if (debug) debugTools.run { archiveWeights(); archiveDelta() }
             val accuracy = DoubleArray(data.size())
+            data.shuffle()
             var totalLoss = 0.0
-            for (index in 0..<data.size()) {
-                val sample = data.get(index)
-                val (inputs, target) = sample
-                val outputs = this.predict(inputs)
-                this.stochasticGradientDescent(target)
 
-                accuracy[index] = getAccuracy(outputs, target)
+            for (batchIndex in 0 until batchCount) {
+                val lossDerivationSum = DoubleArray(layers.last().nbNeurons)
+                for (index in 0 until batchSize) {
+                    val sample = data.get(batchIndex * batchSize + index)
+                    val (inputs, target) = sample
+                    val outputs = predict(inputs)
 
-                totalLoss += this.loss.loss(outputs, target)
+                    for (i in outputs.indices) {
+                        lossDerivationSum[i] += this.loss.derivative(outputs[i], target[i])
+                    }
+                    accuracy[batchIndex * batchSize + index] = getAccuracy(outputs, target)
+                    totalLoss += this.loss.averageLoss(outputs, target)
+                }
+                this.gradientDescent(lossDerivationSum.map { it / batchSize }.toDoubleArray())
             }
+
             accuracyChart[epoch] = accuracy.average()
             lossChart[epoch] = totalLoss / data.size()
             println(
@@ -105,6 +120,7 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                 )
             )
         }
+
         if (debug) debugTools.run { debugTools.printDeltas(); debugTools.printWeights() }
         Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources/plots")
         Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
@@ -201,6 +217,16 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
             sb.append("\n_________________________________________________________________")
         }
         return sb.toString()
+    }
+
+    private fun averageColumn(matrix: MutableList<DoubleArray>): DoubleArray {
+        val average = DoubleArray(matrix.first().size)
+        for (i in matrix.indices) {
+            for (j in matrix[i].indices) {
+                average[j] += matrix[i][j]
+            }
+        }
+        return average.map { it / matrix.size }.toDoubleArray()
     }
 
     private fun getAccuracy(outputs: DoubleArray, target: DoubleArray): Double {
