@@ -13,7 +13,7 @@ class Tester {
 
         val data = Data()
         data.setDataset(listOf(doubleArrayOf(1.0, 1.0)), listOf())
-        Utils.normalizeZScore(data)
+        data.normalizeZFeatures()
 
         val model = NeuralNetwork(learningRate = 0.01, loss = SquaredError)
         model.addLayer(Layer(2))

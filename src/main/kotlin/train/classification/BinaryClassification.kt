@@ -2,6 +2,7 @@ package main.kotlin.train.classification
 
 import main.kotlin.network.*
 import main.kotlin.train.DataLoader
+import main.kotlin.utils.Utils
 
 class BinaryClassification {
 
@@ -14,6 +15,7 @@ class BinaryClassification {
     fun sonarClassification() {
         // Load the data
         val data = DataLoader.loadSonar()
+        data.normalizeMinMaxFeatures()
         val (train, test) = data.split(0.8)
 
         // Create the model
@@ -39,19 +41,20 @@ class BinaryClassification {
     fun ionosphereClassification() {
         // Load the data
         val data = DataLoader.loadIonosphere()
+//        data.normalizeMinMaxFeatures()
         val (train, test) = data.split(0.8)
 
         // Create the model
         val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
         model.addLayer(Layer(33))
-        model.addLayer(Layer(33, LeakyReLU))
-        model.addLayer(Layer(10, LeakyReLU))
-        model.addLayer(Layer(4, LeakyReLU))
-        model.addLayer(Layer(1, Sigmoid))
+        model.addLayer(Layer(33, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(10, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(4, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(1, Sigmoid, NormalXavierGlorotInitialization))
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, batchSize = 1)
+        model.fit(1000, train, batchSize = 2)
         model.save("src/main/resources/ionosphereModel.txt")
         model.test(test)
     }

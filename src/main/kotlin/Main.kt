@@ -1,8 +1,9 @@
 package main.kotlin
 
 import main.kotlin.train.classification.BinaryClassification
-import main.kotlin.train.classification.MultiClassification
-import main.kotlin.train.other.Tester
+
+//import DeepQLearning
+//import main.kotlin.train.deepReinforcement.Environment
 
 
 fun main() {
@@ -11,6 +12,12 @@ fun main() {
 
 //    val multiClassification = MultiClassification()
 //    multiClassification.irisClassification()
+
+//    val environment = Environment(3)
+//    val learningRate = 0.01
+//    val deepQLearning = DeepQLearning(environment, learningRate)
+//    deepQLearning.train(episodes = 150, epsilon = 1.0, replayBufferSize = 10000)
+
 
 //    val tester = Tester()
 //    tester.testInitialization()

@@ -2,6 +2,7 @@ package main.kotlin.train
 
 import java.io.File
 import java.util.*
+import kotlin.math.sqrt
 
 class DataLoader {
 
@@ -132,6 +133,50 @@ class Data {
 
     val features = mutableListOf<DoubleArray>()
     private val labels = mutableListOf<DoubleArray>()
+
+    fun normalizeMinMaxFeatures() {
+        val mins = DoubleArray(features[0].size) { Double.MAX_VALUE }
+        val maxs = DoubleArray(features[0].size) { Double.MIN_VALUE }
+        for (i in 0..<features.size) {
+            for (j in 0..<features[0].size) {
+                if (features[i][j] < mins[j]) {
+                    mins[j] = features[i][j]
+                }
+                if (features[i][j] > maxs[j]) {
+                    maxs[j] = features[i][j]
+                }
+            }
+        }
+
+        for (i in 0..<features.size) {
+            for (j in 0..<features[0].size) {
+                features[i][j] = (features[i][j] - mins[j]) / (maxs[j] - mins[j])
+            }
+        }
+    }
+
+    fun normalizeZFeatures() {
+        val means = DoubleArray(features[0].size) { 0.0 }
+        val stds = DoubleArray(features[0].size) { 0.0 }
+        for (i in 0..<features[0].size) {
+            val column = features.map { it[i] }
+            val mean = column.average()
+            val std = standardDeviation(column, mean)
+            means[i] = mean
+            stds[i] = std
+            for (j in 0..<features.size) {
+                features[j][i] = (features[j][i] - mean) / std
+            }
+        }
+    }
+
+    private fun standardDeviation(column: List<Double>, mean: Double): Double {
+        var sum = 0.0
+        for (value in column) {
+            sum += (value - mean) * (value - mean)
+        }
+        return sqrt(sum / column.size)
+    }
 
     fun add(features: DoubleArray, label: DoubleArray) {
         this.features.add(features)

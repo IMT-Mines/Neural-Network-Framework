@@ -16,17 +16,16 @@ class MultiClassification {
     fun irisClassification() {
         // Load the data
         val data = DataLoader.loadIris()
-        Utils.normalizeZScore(data)
+        data.normalizeMinMaxFeatures()
         val (train, test) = data.split(0.8)
 
         // Create the model
         val model = NeuralNetwork(learningRate = 0.01, loss = CategoricalCrossEntropy)
         model.addLayer(Layer(4))
-        model.addLayer(Layer(20, LeakyReLU))
-        model.addLayer(Layer(10, LeakyReLU))
-        model.addLayer(Layer(3, Softmax))
+        model.addLayer(Layer(20, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(10, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(3, Softmax, NormalXavierGlorotInitialization))
         model.initialize()
-        println(model)
 
         // Train and test the model
         model.fit(1000, train, batchSize = 2)
@@ -43,15 +42,15 @@ class MultiClassification {
     fun digitsClassification() {
         // Load the data
         val data = DataLoader.loadDigits()
-        Utils.normalizeZScore(data)
+        data.normalizeMinMaxFeatures()
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.01, loss = CategoricalCrossEntropy)
         model.addLayer(Layer(784))
-        model.addLayer(Layer(784, ReLU))
-        model.addLayer(Layer(100, ReLU))
-        model.addLayer(Layer(10, Softmax))
+        model.addLayer(Layer(784, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(100, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(10, Softmax, NormalXavierGlorotInitialization))
         model.initialize()
 
         // Train and test the model
@@ -68,19 +67,19 @@ class MultiClassification {
     fun seedsClassification() {
         // Load the data
         val data = DataLoader.loadSeeds()
-        Utils.normalizeZScore(data)
+        data.normalizeMinMaxFeatures()
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, loss = CategoricalCrossEntropy)
+        val model = NeuralNetwork(learningRate = 0.01, loss = CategoricalCrossEntropy)
         model.addLayer(Layer(7))
-        model.addLayer(Layer(10, ReLU))
-        model.addLayer(Layer(10, ReLU))
-        model.addLayer(Layer(3, Softmax))
+        model.addLayer(Layer(7, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(4, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(3, Softmax, NormalXavierGlorotInitialization))
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train)
+        model.fit(1000, train, batchSize = 2)
         model.save("src/main/resources/seedsModel.txt")
         model.test(test)
     }

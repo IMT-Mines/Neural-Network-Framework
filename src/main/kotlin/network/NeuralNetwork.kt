@@ -10,7 +10,7 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
 
     val layers = mutableListOf<Layer>()
 
-    private fun predict(inputs: DoubleArray): DoubleArray {
+    fun predict(inputs: DoubleArray): DoubleArray {
         for (i in 0..<layers.first().nbNeurons) {
             layers.first().neurons[i].output = inputs[i]
         }
@@ -71,6 +71,9 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                     val nextLayerNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
                     neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
                 }
+                if (neuron.delta > 20) {
+                    println("Delta: ${neuron.delta}")
+                }
             }
         }
     }
@@ -117,7 +120,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                 )
             )
         }
-
         if (debug) debugTools.run { debugTools.printDeltas(); debugTools.printWeights() }
         Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources/plots")
         Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
@@ -214,16 +216,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
             sb.append("\n_________________________________________________________________")
         }
         return sb.toString()
-    }
-
-    private fun averageColumn(matrix: MutableList<DoubleArray>): DoubleArray {
-        val average = DoubleArray(matrix.first().size)
-        for (i in matrix.indices) {
-            for (j in matrix[i].indices) {
-                average[j] += matrix[i][j]
-            }
-        }
-        return average.map { it / matrix.size }.toDoubleArray()
     }
 
     private fun getAccuracy(outputs: DoubleArray, target: DoubleArray): Double {
