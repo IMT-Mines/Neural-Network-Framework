@@ -59,6 +59,7 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                 val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
                 neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
             }
+            neuron.bias -= learningRate * neuron.delta
         }
 
         val reversedLayers = layers.reversed()
@@ -80,6 +81,10 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
 //                    }, threadPool))
                 }
 //                awaitFutures(futures)
+                if (neuron.bias > 10) {
+                    println("Delta: ${neuron.bias}")
+                }
+                neuron.bias -= learningRate * neuron.delta
             }
         }
     }
@@ -130,8 +135,13 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                 )
             )
         }
+
+        if (debug) debugTools.run {
+//            printDeltas();
+//            printWeights();
+            printBias()
+        }
         threadPool.shutdown()
-        if (debug) debugTools.run { debugTools.printDeltas(); debugTools.printWeights(); printBias() }
         Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources/plots")
         Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
     }

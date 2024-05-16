@@ -21,6 +21,6 @@ class Neuron(nbInputs: Int) {
             weights.joinToString {
                 it.toString()
             }
-        }, value=$output"
+        }, value=$output, delta=$delta, bias=$bias"
     }
 }

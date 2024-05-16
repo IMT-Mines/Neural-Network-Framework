@@ -146,6 +146,27 @@ class Data {
         return Pair(features[index], labels[index])
     }
 
+    fun normalizeMinMaxFeatures() {
+        val mins = DoubleArray(features[0].size) { Double.MAX_VALUE }
+        val maxs = DoubleArray(features[0].size) { Double.MIN_VALUE }
+        for (i in 0..<features.size) {
+            for (j in 0..<features[0].size) {
+                if (features[i][j] < mins[j]) {
+                    mins[j] = features[i][j]
+                }
+                if (features[i][j] > maxs[j]) {
+                    maxs[j] = features[i][j]
+                }
+            }
+        }
+
+        for (i in 0..<features.size) {
+            for (j in 0..<features[0].size) {
+                features[i][j] = (features[i][j] - mins[j]) / (maxs[j] - mins[j])
+            }
+        }
+    }
+
     fun split(ratio: Double): Pair<Data, Data> {
         val trainData = Data()
         val testData = Data()
