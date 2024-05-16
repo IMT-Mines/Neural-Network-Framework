@@ -38,7 +38,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
         for (neuronIndex in layers.last().neurons.indices) {
             val neuron = layers.last().neurons[neuronIndex]
             for (weightIndex in neuron.weights.indices) {
-//                val outputError = this.loss.derivative(neuron.output, targets[neuronIndex])
                 neuron.delta = loss[neuronIndex] * outputsLayerDerivative[neuronIndex]
                 val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
                 neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
@@ -94,10 +93,8 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                     accuracy[batchIndex * batchSize + index] = getAccuracy(outputs, target)
                     totalLoss += this.loss.averageLoss(outputs, target)
                 }
-
                 this.gradientDescent(lossDerivationSum.map { it / batchSize }.toDoubleArray())
             }
-
 
             accuracyChart[epoch] = accuracy.average()
             lossChart[epoch] = totalLoss / data.size()
