@@ -46,7 +46,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
      * This function is used to train the neural network, it uses the backpropagation algorithm
      */
     private fun stochasticGradientDescent(targets: DoubleArray) {
-        val a = layers.last().neurons.last().weights.joinToString { "%.2f".format(it) }
         val outputsLayerDerivative = layers.last().getDerivativeOfEachNeuron()
         for (neuronIndex in layers.last().neurons.indices) {
             val neuron = layers.last().neurons[neuronIndex]
@@ -54,13 +53,10 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                 val outputError = this.loss.derivative(neuron.output, targets[neuronIndex])
                 val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
                 neuron.delta = outputError * outputsLayerDerivative[neuronIndex]
-                println("${outputsLayerDerivative[neuronIndex]} / ${neuron.delta} / $learningRate / ${nextLayerNeuron.output}")
                 neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
 
             }
         }
-        val b = layers.last().neurons.last().weights.joinToString { "%.2f".format(it) }
-        if (a != b) println("Weights changed")
         val reversedLayers = layers.reversed()
         for (layerIndex in 1..<reversedLayers.size - 1) {
             val outputsDerivatives = reversedLayers[layerIndex].getDerivativeOfEachNeuron()
