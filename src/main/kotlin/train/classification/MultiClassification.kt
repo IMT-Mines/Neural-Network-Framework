@@ -22,14 +22,14 @@ class MultiClassification {
         // Create the model
         val model = NeuralNetwork(learningRate = 0.01, loss = CategoricalCrossEntropy)
         model.addLayer(Layer(4))
-        model.addLayer(Layer(20, ReLU))
-        model.addLayer(Layer(10, ReLU))
+        model.addLayer(Layer(20, LeakyReLU))
+        model.addLayer(Layer(10, LeakyReLU))
         model.addLayer(Layer(3, Softmax))
         model.initialize()
         println(model)
 
         // Train and test the model
-        model.fit(1000, train)
+        model.fit(1000, train, batchSize = 2)
         model.save("src/main/resources/irisModel.txt")
         model.test(test)
     }

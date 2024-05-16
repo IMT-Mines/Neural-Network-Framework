@@ -5,16 +5,11 @@ import main.kotlin.train.Data
 import main.kotlin.utils.DebugTools
 import org.jetbrains.kotlinx.kandy.util.color.Color
 import java.io.File
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 
 class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredError) {
 
     val layers = mutableListOf<Layer>()
-
-    private val threadPool: ExecutorService = Executors.newFixedThreadPool(10)
 
     fun predict(inputs: DoubleArray): DoubleArray {
         for (i in 0..<layers.first().nbNeurons) {
@@ -39,8 +34,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
      * This function is used to train the neural network, it uses the backpropagation algorithm
      */
     private fun gradientDescent(loss: DoubleArray) {
-
-
         val outputsLayerDerivative = layers.last().getDerivativeOfEachNeuron()
         for (neuronIndex in layers.last().neurons.indices) {
             val neuron = layers.last().neurons[neuronIndex]
@@ -58,25 +51,16 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
             for (neuronIndex in reversedLayers[layerIndex].neurons.indices) {
                 val neuron = reversedLayers[layerIndex].neurons[neuronIndex]
 
-                val latch = CountDownLatch(neuron.weights.size)
-
                 for (weightIndex in neuron.weights.indices) {
-                    threadPool.submit {
-                        try {
-                            var partialError = 0.0
-                            for (previousLayerNeuron in reversedLayers[layerIndex - 1].neurons.indices) {
-                                val beforeNeuron = reversedLayers[layerIndex - 1].neurons[previousLayerNeuron]
-                                partialError += beforeNeuron.weights[neuronIndex] * beforeNeuron.delta
-                            }
-                            neuron.delta = partialError * outputsDerivatives[neuronIndex]
-                            val nextLayerNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
-                            neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
-                        } finally {
-                            latch.countDown()
-                        }
+                    var partialError = 0.0
+                    for (previousLayerNeuron in reversedLayers[layerIndex - 1].neurons.indices) {
+                        val beforeNeuron = reversedLayers[layerIndex - 1].neurons[previousLayerNeuron]
+                        partialError += beforeNeuron.weights[neuronIndex] * beforeNeuron.delta
                     }
+                    neuron.delta = partialError * outputsDerivatives[neuronIndex]
+                    val nextLayerNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
+                    neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
                 }
-                latch.await()
             }
         }
     }
@@ -90,7 +74,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
         val accuracyChart: MutableMap<Int, Double> = mutableMapOf()
 
         val batchCount = data.size() / batchSize
-//        val threadPool = Executors.newFixedThreadPool(10)
 
         for (epoch in 0..<epochs) {
             if (debug) debugTools.run { archiveWeights(); archiveDelta() }
@@ -98,37 +81,26 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
             data.shuffle()
             var totalLoss = 0.0
 
-            val latch = CountDownLatch(batchCount)
-
             for (batchIndex in 0 until batchCount) {
                 val lossDerivationSum = DoubleArray(layers.last().nbNeurons)
-                threadPool.submit {
-                    try {
-                        for (index in 0 until batchSize) {
-                            val sample = data.get(batchIndex * batchSize + index)
-                            val (inputs, target) = sample
-                            val outputs = predict(inputs)
+                for (index in 0 until batchSize) {
+                    val sample = data.get(batchIndex * batchSize + index)
+                    val (inputs, target) = sample
+                    val outputs = predict(inputs)
 
-                            val loss = DoubleArray(outputs.size)
-                            for (i in outputs.indices) {
-                                loss[i] = this.loss.derivative(outputs[i], target[i])
-                            }
-                            lossDerivationSum.mapIndexed { i, value -> value + loss[i] }
-                        }
-                    } finally {
-                        latch.countDown()
+                    for (i in outputs.indices) {
+                        lossDerivationSum[i] += this.loss.derivative(outputs[i], target[i])
                     }
+                    accuracy[batchIndex * batchSize + index] = getAccuracy(outputs, target)
+                    totalLoss += this.loss.averageLoss(outputs, target)
                 }
 
                 this.gradientDescent(lossDerivationSum.map { it / batchSize }.toDoubleArray())
-//                accuracy[batchIndex * batchSize + index] = getAccuracy(outputs, target)
-//                totalLoss += this.loss.averageLoss(outputs, target)
             }
-            latch.await()
 
 
             accuracyChart[epoch] = accuracy.average()
-//            lossChart[epoch] = totalLoss / data.size()
+            lossChart[epoch] = totalLoss / data.size()
             println(
                 "Epoch: %d | Training Loss: %10.4f | Accuracy: %10.2f".format(
                     epoch,
@@ -137,8 +109,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                 )
             )
         }
-
-        threadPool.shutdown()
 
         if (debug) debugTools.run { debugTools.printDeltas(); debugTools.printWeights() }
         Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources/plots")
