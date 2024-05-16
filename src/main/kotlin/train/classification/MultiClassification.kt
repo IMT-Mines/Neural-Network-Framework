@@ -56,7 +56,7 @@ class MultiClassification {
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, batchSize = 64)
+        model.fit(1, train, batchSize = 64)
         model.save("src/main/resources/digitsModel.txt")
         model.test(test)
     }
