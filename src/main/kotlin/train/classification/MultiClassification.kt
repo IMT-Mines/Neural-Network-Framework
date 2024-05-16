@@ -20,7 +20,7 @@ class MultiClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.01, loss = CategoricalCrossEntropy)
+        val model = NeuralNetwork(loss = CategoricalCrossEntropy, optimizer = SGD(learningRate = 0.01))
         model.addLayer(Layer(4))
         model.addLayer(Layer(20, LeakyReLU))
         model.addLayer(Layer(10, LeakyReLU))
@@ -47,7 +47,7 @@ class MultiClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.1, loss = CategoricalCrossEntropy)
+        val model = NeuralNetwork(loss = CategoricalCrossEntropy,optimizer = SGD(learningRate = 0.1))
         model.addLayer(Layer(784))
         model.addLayer(Layer(784, ReLU))
         model.addLayer(Layer(100, ReLU))
@@ -72,7 +72,7 @@ class MultiClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, loss = CategoricalCrossEntropy)
+        val model = NeuralNetwork(loss = CategoricalCrossEntropy, optimizer = SGD(learningRate = 0.001))
         model.addLayer(Layer(7))
         model.addLayer(Layer(10, ReLU))
         model.addLayer(Layer(10, ReLU))

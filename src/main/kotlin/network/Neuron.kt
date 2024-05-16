@@ -15,12 +15,4 @@ class Neuron(nbInputs: Int) {
         this.output = output + bias
         return this.output
     }
-
-    override fun toString(): String {
-        return "weights=${
-            weights.joinToString {
-                it.toString()
-            }
-        }, value=$output, delta=$delta, bias=$bias"
-    }
 }

@@ -9,7 +9,7 @@ import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 
-class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredError) {
+class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SGD(0.001)) {
 
     val layers = mutableListOf<Layer>()
 
@@ -47,48 +47,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
 
     }
 
-    /**
-     * This function is used to train the neural network, it uses the backpropagation algorithm
-     */
-    private fun gradientDescent(loss: DoubleArray) {
-        val outputsLayerDerivative = layers.last().getDerivativeOfEachNeuron()
-        for (neuronIndex in layers.last().neurons.indices) {
-            val neuron = layers.last().neurons[neuronIndex]
-            for (weightIndex in neuron.weights.indices) {
-                neuron.delta = loss[neuronIndex] * outputsLayerDerivative[neuronIndex]
-                val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
-                neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
-            }
-            neuron.bias -= learningRate * neuron.delta
-        }
-
-        val reversedLayers = layers.reversed()
-        for (layerIndex in 1..<reversedLayers.size - 1) {
-            val outputsDerivatives = reversedLayers[layerIndex].getDerivativeOfEachNeuron()
-            for (neuronIndex in reversedLayers[layerIndex].neurons.indices) {
-                val neuron = reversedLayers[layerIndex].neurons[neuronIndex]
-                val futures = mutableListOf<CompletableFuture<*>>()
-                for (weightIndex in neuron.weights.indices) {
-//                    futures.add(CompletableFuture.runAsync({
-                    var partialError = 0.0
-                    for (previousLayerNeuron in reversedLayers[layerIndex - 1].neurons.indices) {
-                        val beforeNeuron = reversedLayers[layerIndex - 1].neurons[previousLayerNeuron]
-                        partialError += beforeNeuron.weights[neuronIndex] * beforeNeuron.delta
-                    }
-                    neuron.delta = partialError * outputsDerivatives[neuronIndex]
-                    val nextLayerNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
-                    neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
-//                    }, threadPool))
-                }
-//                awaitFutures(futures)
-                if (neuron.bias > 10) {
-                    println("Delta: ${neuron.bias}")
-                }
-                neuron.bias -= learningRate * neuron.delta
-            }
-        }
-    }
-
     fun fit(epochs: Int, data: Data, batchSize: Int = 1, debug: Boolean = false) {
         if (data.size() % batchSize != 0) throw IllegalArgumentException("The batch size must be a multiple of the data size")
 
@@ -122,7 +80,7 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                     }, threadPool))
                 }
                 awaitFutures(futures)
-                this.gradientDescent(lossDerivationSum.map { it / batchSize }.toDoubleArray())
+                this.optimizer.optimize(this, lossDerivationSum.map { it / batchSize }.toDoubleArray())
             }
 
             accuracyChart[epoch] = accuracy.average()
@@ -235,16 +193,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
             sb.append("\n_________________________________________________________________")
         }
         return sb.toString()
-    }
-
-    private fun averageColumn(matrix: MutableList<DoubleArray>): DoubleArray {
-        val average = DoubleArray(matrix.first().size)
-        for (i in matrix.indices) {
-            for (j in matrix[i].indices) {
-                average[j] += matrix[i][j]
-            }
-        }
-        return average.map { it / matrix.size }.toDoubleArray()
     }
 
     private fun getAccuracy(outputs: DoubleArray, target: DoubleArray): Double {

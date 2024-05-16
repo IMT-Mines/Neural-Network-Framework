@@ -15,7 +15,6 @@ class Layer(
         }
     }
 
-
     fun compute(inputs: DoubleArray): DoubleArray {
         var outputs = DoubleArray(nbNeurons)
         for (i in neurons.indices) {
@@ -28,20 +27,11 @@ class Layer(
         return outputs
     }
 
-    fun getDerivativeOfEachNeuron(): DoubleArray {
+    fun getActivationDerivative(): DoubleArray {
         val derivatives = DoubleArray(nbNeurons)
         for (i in neurons.indices) {
             derivatives[i] = neurons[i].output
         }
         return activation.derivative(derivatives)
-    }
-
-    override fun toString(): String {
-        val sb = StringBuilder()
-        for (neuron in neurons) {
-            sb.append(neuron.toString())
-            sb.append("\n")
-        }
-        return sb.toString()
     }
 }

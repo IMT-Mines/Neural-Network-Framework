@@ -17,7 +17,7 @@ class BinaryClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
+        val model = NeuralNetwork(loss = BinaryCrossEntropy, optimizer = SGD(learningRate = 0.001))
         model.addLayer(Layer(60))
         model.addLayer(Layer(60, LeakyReLU, NormalHeInitialization))
         model.addLayer(Layer(10, LeakyReLU, NormalHeInitialization))
@@ -43,16 +43,19 @@ class BinaryClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(learningRate = 0.001, loss = BinaryCrossEntropy)
+        val model = NeuralNetwork(
+            loss = BinaryCrossEntropy,
+            optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8)
+        )
         model.addLayer(Layer(33))
-        model.addLayer(Layer(33, LeakyReLU, NormalHeInitialization))
-        model.addLayer(Layer(10, LeakyReLU, NormalHeInitialization))
-        model.addLayer(Layer(4, LeakyReLU, NormalHeInitialization))
-        model.addLayer(Layer(1, Sigmoid, NormalXavierGlorotInitialization))
+        model.addLayer(Layer(33, ReLU))
+        model.addLayer(Layer(10, ReLU))
+        model.addLayer(Layer(4, ReLU))
+        model.addLayer(Layer(1, Sigmoid))
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, batchSize = 2, true)
+        model.fit(1000, train, batchSize = 1, true)
         model.save("src/main/resources/ionosphereModel.txt")
         model.test(test)
     }
