@@ -3,20 +3,21 @@ package main.kotlin.network
 class Layer(
     var nbNeurons: Int,
     var activation: Activation = Linear,
+    var initialization: Initialization = RandomInitialization,
     private var useBias: Boolean = true
 ) {
 
-    var neurons: Array<Neuron> = Array(nbNeurons) { Neuron() }
+    var neurons: Array<Neuron> = Array(nbNeurons) { Neuron(0) }
     internal var bias: Double = 0.0
 
-    fun initialize(nbInputs: Int = 0) {
+    fun buildLayer(nbInputs: Int = 0) {
         bias = if (useBias) Math.random() * 2 - 1 else 0.0
         for (i in neurons.indices) {
-            val neuron = Neuron()
-            neuron.initialize(nbInputs)
+            val neuron = Neuron(nbInputs)
             neurons[i] = neuron
         }
     }
+
 
     fun compute(inputs: DoubleArray): DoubleArray {
         var outputs = DoubleArray(nbNeurons)

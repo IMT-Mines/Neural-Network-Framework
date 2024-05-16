@@ -3,10 +3,26 @@ package main.kotlin.train.other
 import main.kotlin.utils.DebugTools
 import main.kotlin.network.*
 import main.kotlin.train.Data
+import main.kotlin.utils.Utils
 import kotlin.math.floor
 
 
 class Tester {
+
+    fun testInitialization() {
+
+        val data = Data()
+        data.setDataset(listOf(doubleArrayOf(1.0, 1.0)), listOf())
+        Utils.normalizeZScore(data)
+
+        val model = NeuralNetwork(learningRate = 0.01, loss = SquaredError)
+        model.addLayer(Layer(2))
+        model.addLayer(Layer(2, ReLU, NormalHeInitialization))
+        model.addLayer(Layer(1, Sigmoid, NormalXavierGlorotInitialization))
+        model.initialize()
+        model.save("src/main/resources/model.txt")
+//        model.fit(1, )
+    }
 
     fun testBackpropagation() {
         val inputSize = 6

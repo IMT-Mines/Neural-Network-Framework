@@ -6,12 +6,11 @@ import main.kotlin.utils.DebugTools
 import org.jetbrains.kotlinx.kandy.util.color.Color
 import java.io.File
 
-
 class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredError) {
 
     val layers = mutableListOf<Layer>()
 
-    fun predict(inputs: DoubleArray): DoubleArray {
+    private fun predict(inputs: DoubleArray): DoubleArray {
         for (i in 0..<layers.first().nbNeurons) {
             layers.first().neurons[i].output = inputs[i]
         }
@@ -22,12 +21,25 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
         return outputs
     }
 
-    fun initialize() {
+    private fun buildNeuralModel() {
         if (layers.size < 2) throw IllegalArgumentException("The number of layers must be greater than 1")
-        layers.first().initialize()
+        layers.first().buildLayer()
         for (i in 1..<layers.size) {
-            layers[i].initialize(layers[i - 1].nbNeurons)
+            layers[i].buildLayer(layers[i - 1].nbNeurons)
         }
+    }
+
+    fun initialize() {
+        buildNeuralModel()
+        for (layerIndex in 1..<layers.size) {
+            for (neuronIndex in layers[layerIndex].neurons.indices) {
+                val fanIn = layers[layerIndex].neurons[neuronIndex].weights.size
+                val fanOut = if (layerIndex == layers.size - 1) 0 else layers[layerIndex + 1].neurons.size
+                val weights = layers[layerIndex].initialization.initialize(fanIn, fanOut)
+                layers[layerIndex].neurons[neuronIndex].weights = weights
+            }
+        }
+
     }
 
     /**
@@ -49,7 +61,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
             val outputsDerivatives = reversedLayers[layerIndex].getDerivativeOfEachNeuron()
             for (neuronIndex in reversedLayers[layerIndex].neurons.indices) {
                 val neuron = reversedLayers[layerIndex].neurons[neuronIndex]
-
                 for (weightIndex in neuron.weights.indices) {
                     var partialError = 0.0
                     for (previousLayerNeuron in reversedLayers[layerIndex - 1].neurons.indices) {
