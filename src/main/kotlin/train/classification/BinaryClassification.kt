@@ -48,14 +48,14 @@ class BinaryClassification {
             optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8)
         )
         model.addLayer(Layer(33))
-        model.addLayer(Layer(33, ReLU))
-        model.addLayer(Layer(10, ReLU))
-        model.addLayer(Layer(4, ReLU))
-        model.addLayer(Layer(1, Sigmoid))
+        model.addLayer(Layer(33, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(10, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(4, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(1, Sigmoid, NormalXavierGlorotInitialization))
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, batchSize = 1, true)
+        model.fit(500, train, batchSize = 2, false)
         model.save("src/main/resources/ionosphereModel.txt")
         model.test(test)
     }

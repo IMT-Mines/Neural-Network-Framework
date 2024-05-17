@@ -5,6 +5,8 @@ class Neuron(nbInputs: Int) {
     var bias: Double = Math.random() * 0.2
     var output: Double = 0.0
     var delta: Double = 0.0
+    var m: DoubleArray = DoubleArray(nbInputs)
+    var v: DoubleArray = DoubleArray(nbInputs)
 
     fun compute(inputs: DoubleArray): Double {
         var output = 0.0
