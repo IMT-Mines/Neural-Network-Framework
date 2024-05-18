@@ -3,14 +3,19 @@ package main.kotlin.network
 import main.kotlin.charts.Chart
 import main.kotlin.train.Data
 import main.kotlin.utils.DebugTools
+import main.kotlin.utils.Utils.Companion.awaitFutures
 import org.jetbrains.kotlinx.kandy.util.color.Color
 import java.io.File
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 
-class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredError) {
+class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SGD(0.001)) {
 
     val layers = mutableListOf<Layer>()
 
-    fun predict(inputs: DoubleArray): DoubleArray {
+    private val threadPool = Executors.newFixedThreadPool(512)
+
+    private fun predict(inputs: DoubleArray): DoubleArray {
         for (i in 0..<layers.first().nbNeurons) {
             layers.first().neurons[i].output = inputs[i]
         }
@@ -42,42 +47,6 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
 
     }
 
-    /**
-     * This function is used to train the neural network, it uses the backpropagation algorithm
-     */
-    private fun gradientDescent(loss: DoubleArray) {
-        val outputsLayerDerivative = layers.last().getDerivativeOfEachNeuron()
-        for (neuronIndex in layers.last().neurons.indices) {
-            val neuron = layers.last().neurons[neuronIndex]
-            for (weightIndex in neuron.weights.indices) {
-                neuron.delta = loss[neuronIndex] * outputsLayerDerivative[neuronIndex]
-                val nextLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
-                neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
-            }
-        }
-
-        val reversedLayers = layers.reversed()
-        for (layerIndex in 1..<reversedLayers.size - 1) {
-            val outputsDerivatives = reversedLayers[layerIndex].getDerivativeOfEachNeuron()
-            for (neuronIndex in reversedLayers[layerIndex].neurons.indices) {
-                val neuron = reversedLayers[layerIndex].neurons[neuronIndex]
-                for (weightIndex in neuron.weights.indices) {
-                    var partialError = 0.0
-                    for (previousLayerNeuron in reversedLayers[layerIndex - 1].neurons.indices) {
-                        val beforeNeuron = reversedLayers[layerIndex - 1].neurons[previousLayerNeuron]
-                        partialError += beforeNeuron.weights[neuronIndex] * beforeNeuron.delta
-                    }
-                    neuron.delta = partialError * outputsDerivatives[neuronIndex]
-                    val nextLayerNeuron = reversedLayers[layerIndex + 1].neurons[weightIndex]
-                    neuron.weights[weightIndex] -= learningRate * neuron.delta * nextLayerNeuron.output
-                }
-                if (neuron.delta > 20) {
-                    println("Delta: ${neuron.delta}")
-                }
-            }
-        }
-    }
-
     fun fit(epochs: Int, data: Data, batchSize: Int = 1, debug: Boolean = false) {
         if (data.size() % batchSize != 0) throw IllegalArgumentException("The batch size must be a multiple of the data size")
 
@@ -89,25 +58,28 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
         val batchCount = data.size() / batchSize
 
         for (epoch in 0..<epochs) {
-            if (debug) debugTools.run { archiveWeights(); archiveDelta() }
+            if (debug) debugTools.run { archiveWeights(); archiveDelta(); archiveBias() }
             val accuracy = DoubleArray(data.size())
             data.shuffle()
             var totalLoss = 0.0
-
             for (batchIndex in 0 until batchCount) {
                 val lossDerivationSum = DoubleArray(layers.last().nbNeurons)
+                val futures = mutableListOf<CompletableFuture<*>>()
                 for (index in 0 until batchSize) {
-                    val sample = data.get(batchIndex * batchSize + index)
-                    val (inputs, target) = sample
-                    val outputs = predict(inputs)
+                    futures.add(CompletableFuture.runAsync({
+                        val sample = data.get(batchIndex * batchSize + index)
+                        val (inputs, target) = sample
+                        val outputs = predict(inputs)
 
-                    for (i in outputs.indices) {
-                        lossDerivationSum[i] += this.loss.derivative(outputs[i], target[i])
-                    }
-                    accuracy[batchIndex * batchSize + index] = getAccuracy(outputs, target)
-                    totalLoss += this.loss.averageLoss(outputs, target)
+                        for (i in outputs.indices) {
+                            lossDerivationSum[i] += this.loss.derivative(outputs[i], target[i])
+                        }
+                        accuracy[batchIndex * batchSize + index] = getAccuracy(outputs, target)
+                        totalLoss += this.loss.averageLoss(outputs, target)
+                    }, threadPool))
                 }
-                this.gradientDescent(lossDerivationSum.map { it / batchSize }.toDoubleArray())
+                awaitFutures(futures)
+                this.optimizer.optimize(this, lossDerivationSum.map { it / batchSize }.toDoubleArray())
             }
 
             accuracyChart[epoch] = accuracy.average()
@@ -120,7 +92,9 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                 )
             )
         }
-        if (debug) debugTools.run { debugTools.printDeltas(); debugTools.printWeights() }
+
+        if (debug) debugTools.run { printDeltas(); printWeights();printBias() }
+        threadPool.shutdown()
         Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources/plots")
         Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
     }
@@ -168,12 +142,14 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
                 else -> Linear
             }
             val layer = Layer(nbNeurons, activationFunction)
-            layer.bias = bufferedReader.readLine().toDouble()
             for (i in 0..<nbNeurons) {
                 line = bufferedReader.readLine()
                 if (line.isEmpty()) continue
-                val weights = line.split(" ").map { it.toDouble() }.toDoubleArray()
-                layer.neurons[i].weights = weights
+                val bias = line.split(";").first().toDouble()
+                val weigthsString = line.split(";").last()
+                if (weigthsString.isEmpty()) continue
+                layer.neurons[i].weights = weigthsString.split(" ").map { it.toDouble() }.toDoubleArray()
+                layer.neurons[i].bias = bias
             }
             layers.add(layer)
             line = bufferedReader.readLine()
@@ -187,9 +163,8 @@ class NeuralNetwork(private var learningRate: Double, var loss: Loss = SquaredEr
         for (layer in layers) {
             bufferWriter.write("${layer.nbNeurons}\n")
             layer.activation::class.simpleName?.let { bufferWriter.write("$it\n") }
-            bufferWriter.write("${layer.bias}\n")
             for (neuron in layer.neurons) {
-                val str = neuron.weights.joinToString(" ")
+                val str = "${neuron.bias};${neuron.weights.joinToString(" ")}"
                 bufferWriter.write(str)
                 bufferWriter.write("\n")
             }

@@ -10,7 +10,7 @@ class DebugTools(private val model: NeuralNetwork){
 
     private var weightsHistory: MutableMap<Neuron, MutableList<DoubleArray>> = mutableMapOf()
     private var deltaHistory: MutableMap<Neuron, MutableList<Double>> = mutableMapOf()
-
+    private var biasHistory: MutableMap<Neuron, MutableList<Double>> = mutableMapOf()
 
     fun archiveWeights() {
         for (layer in model.layers) {
@@ -34,6 +34,17 @@ class DebugTools(private val model: NeuralNetwork){
         }
     }
 
+    fun archiveBias() {
+        for (layer in model.layers) {
+            for (neuron in layer.neurons) {
+                if (biasHistory[neuron] == null) {
+                    biasHistory[neuron] = mutableListOf()
+                }
+                biasHistory[neuron]?.add( neuron.bias)
+            }
+        }
+    }
+
 
     fun printDeltas() {
         val path = "src/main/resources/plots/debug/delta"
@@ -52,6 +63,28 @@ class DebugTools(private val model: NeuralNetwork){
                 Chart.lineChart(
                     deltaList,
                     "Layer-$layerIndex Neuron-$neuronIndex", "Epoch", "Delta", Color.ORANGE, path
+                )
+            }
+        }
+    }
+
+    fun printBias() {
+        val path = "src/main/resources/plots/debug/bias"
+        val folder = File(path)
+        folder.deleteRecursively()
+
+        for (layerIndex in 1..<model.layers.size) {
+            for (neuronIndex in model.layers[layerIndex].neurons.indices) {
+
+                val deltaList: MutableMap<Int, Double> = mutableMapOf()
+
+                for (i in 0..< biasHistory[model.layers[layerIndex].neurons[neuronIndex]]!!.size) {
+                    deltaList[i] = biasHistory[model.layers[layerIndex].neurons[neuronIndex]]!![i]
+                }
+
+                Chart.lineChart(
+                    deltaList,
+                    "Layer-$layerIndex Neuron-$neuronIndex", "Epoch", "Bias", Color.RED, path
                 )
             }
         }

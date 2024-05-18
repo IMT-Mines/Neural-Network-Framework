@@ -7,11 +7,11 @@ import main.kotlin.train.classification.BinaryClassification
 
 
 fun main() {
-    val binaryClassification = BinaryClassification()
-    binaryClassification.ionosphereClassification()
+//    val binaryClassification = BinaryClassification()
+//    binaryClassification.ionosphereClassification()
 
-//    val multiClassification = MultiClassification()
-//    multiClassification.irisClassification()
+    val multiClassification = MultiClassification()
+    multiClassification.digitsClassification()
 
 //    val environment = Environment(3)
 //    val learningRate = 0.01

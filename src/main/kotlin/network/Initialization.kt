@@ -6,7 +6,6 @@ import kotlin.math.sqrt
 interface Initialization {
 
     fun initialize(fanIn: Int, fanOut: Int): DoubleArray
-
 }
 
 object RandomInitialization : Initialization {
