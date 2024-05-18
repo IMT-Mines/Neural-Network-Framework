@@ -23,9 +23,11 @@ class DataLoader {
                     "1" -> {
                         data.add(features, doubleArrayOf(1.0, 0.0, 0.0))
                     }
+
                     "2" -> {
                         data.add(features, doubleArrayOf(0.0, 1.0, 0.0))
                     }
+
                     "3" -> {
                         data.add(features, doubleArrayOf(0.0, 0.0, 1.0))
                     }
@@ -94,9 +96,11 @@ class DataLoader {
                     "Iris-setosa" -> {
                         data.add(features, doubleArrayOf(1.0, 0.0, 0.0))
                     }
+
                     "Iris-versicolor" -> {
                         data.add(features, doubleArrayOf(0.0, 1.0, 0.0))
                     }
+
                     "Iris-virginica" -> {
                         data.add(features, doubleArrayOf(0.0, 0.0, 1.0))
                     }
@@ -146,11 +150,11 @@ class Data {
         return Pair(features[index], labels[index])
     }
 
-    fun normalizeMinMaxFeatures() {
+    fun normalizeMinMaxFeatures(): Pair<DoubleArray, DoubleArray> {
         val mins = DoubleArray(features[0].size) { Double.MAX_VALUE }
         val maxs = DoubleArray(features[0].size) { Double.MIN_VALUE }
-        for (i in 0..<features.size) {
-            for (j in 0..<features[0].size) {
+        for (i in 0 until features.size) {
+            for (j in 0 until features[0].size) {
                 if (features[i][j] < mins[j]) {
                     mins[j] = features[i][j]
                 }
@@ -160,9 +164,20 @@ class Data {
             }
         }
 
-        for (i in 0..<features.size) {
-            for (j in 0..<features[0].size) {
+        for (i in 0 until features.size) {
+            for (j in 0 until features[0].size) {
                 features[i][j] = (features[i][j] - mins[j]) / (maxs[j] - mins[j])
+            }
+        }
+        return Pair(mins, maxs)
+    }
+
+    companion object {
+        fun normalizeNewData(newFeatures: Array<DoubleArray>, mins: DoubleArray, maxs: DoubleArray) {
+            for (i in newFeatures.indices) {
+                for (j in 0 until newFeatures[0].size) {
+                    newFeatures[i][j] = (newFeatures[i][j] - mins[j]) / (maxs[j] - mins[j])
+                }
             }
         }
     }

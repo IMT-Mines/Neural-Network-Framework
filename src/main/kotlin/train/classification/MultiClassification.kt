@@ -20,13 +20,14 @@ class MultiClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(loss = CategoricalCrossEntropy, Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8))
+        val model = NeuralNetwork(
+            loss = CategoricalCrossEntropy, Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8)
+        )
         model.addLayer(Layer(4))
         model.addLayer(Layer(20, LeakyReLU))
         model.addLayer(Layer(10, LeakyReLU))
         model.addLayer(Layer(3, Softmax))
         model.initialize()
-        println(model)
 
         // Train and test the model
         model.fit(1000, train, batchSize = 2)
@@ -43,19 +44,22 @@ class MultiClassification {
     fun digitsClassification() {
         // Load the data
         val data = DataLoader.loadDigits()
-        Utils.normalizeZScore(data)
+        data.normalizeMinMaxFeatures()
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(loss = CategoricalCrossEntropy,optimizer = SGD(learningRate = 0.1))
+        val model = NeuralNetwork(
+            loss = CategoricalCrossEntropy,
+            optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8)
+        )
         model.addLayer(Layer(784))
-        model.addLayer(Layer(784, ReLU))
-        model.addLayer(Layer(100, ReLU))
-        model.addLayer(Layer(10, Softmax))
+        model.addLayer(Layer(300, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(100, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(10, Softmax, NormalXavierGlorotInitialization))
         model.initialize()
 
         // Train and test the model
-        model.fit(10, train, batchSize = 64)
+        model.fit(50, train, batchSize = 64)
         model.save("src/main/resources/digitsModel.txt")
         model.test(test)
     }
@@ -72,7 +76,10 @@ class MultiClassification {
         val (train, test) = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(loss = CategoricalCrossEntropy, optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8))
+        val model = NeuralNetwork(
+            loss = CategoricalCrossEntropy,
+            optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8)
+        )
         model.addLayer(Layer(7))
         model.addLayer(Layer(10, ReLU))
         model.addLayer(Layer(10, ReLU))

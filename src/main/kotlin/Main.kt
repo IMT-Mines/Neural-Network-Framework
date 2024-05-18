@@ -6,11 +6,11 @@ import main.kotlin.train.other.Tester
 
 
 fun main() {
-    val binaryClassification = BinaryClassification()
-    binaryClassification.ionosphereClassification()
+//    val binaryClassification = BinaryClassification()
+//    binaryClassification.ionosphereClassification()
 
-//    val multiClassification = MultiClassification()
-//    multiClassification.seedsClassification()
+    val multiClassification = MultiClassification()
+    multiClassification.digitsClassification()
 
 //    val tester = Tester()
 //    tester.testInitialization()

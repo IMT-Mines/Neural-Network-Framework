@@ -62,7 +62,6 @@ class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SG
             val accuracy = DoubleArray(data.size())
             data.shuffle()
             var totalLoss = 0.0
-
             for (batchIndex in 0 until batchCount) {
                 val lossDerivationSum = DoubleArray(layers.last().nbNeurons)
                 val futures = mutableListOf<CompletableFuture<*>>()
@@ -94,11 +93,7 @@ class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SG
             )
         }
 
-        if (debug) debugTools.run {
-//            printDeltas();
-//            printWeights();
-            printBias()
-        }
+        if (debug) debugTools.run { printDeltas(); printWeights();printBias() }
         threadPool.shutdown()
         Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources/plots")
         Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
@@ -150,8 +145,11 @@ class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SG
             for (i in 0..<nbNeurons) {
                 line = bufferedReader.readLine()
                 if (line.isEmpty()) continue
-                val weights = line.split(" ").map { it.toDouble() }.toDoubleArray()
-                layer.neurons[i].weights = weights
+                val bias = line.split(";").first().toDouble()
+                val weigthsString = line.split(";").last()
+                if (weigthsString.isEmpty()) continue
+                layer.neurons[i].weights = weigthsString.split(" ").map { it.toDouble() }.toDoubleArray()
+                layer.neurons[i].bias = bias
             }
             layers.add(layer)
             line = bufferedReader.readLine()
@@ -166,7 +164,7 @@ class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SG
             bufferWriter.write("${layer.nbNeurons}\n")
             layer.activation::class.simpleName?.let { bufferWriter.write("$it\n") }
             for (neuron in layer.neurons) {
-                val str = neuron.weights.joinToString(" ")
+                val str = "${neuron.bias};${neuron.weights.joinToString(" ")}"
                 bufferWriter.write(str)
                 bufferWriter.write("\n")
             }
