@@ -9,7 +9,7 @@ This "framework" is able to do :
 
 ## 2. Limitations
 
-- Due to the lack of methods, the framework is not able to do regression when the model is too complex
+- The model does not support Convolutional Neural Networks
 
 ## 3. How to use
 
@@ -30,13 +30,15 @@ val (train, test) = data.split(0.8)
 The model should be created by the NeuralNetwork class. You must specify the learning rate and the loss function.
 
 ```kotlin
-val model = NeuralNetwork(0.001, CategoricalCrossEntropy)
+val model = NeuralNetwork(0.001, CategoricalCrossEntropy, optimzer = SGD(0.001))
 ```
 
-To add layers, you should use the addLayer method and specify the number of neurons, the activation function and bias.
+The optimizer is optional. By default, the model uses stochastic gradient descent. You also choose Adam.
+To add layers, you should use the addLayer method and specify the number of neurons, the activation function and
+initializer.
 
 ```kotlin
-model.addLayer(10, ReLU, true)
+model.addLayer(10, ReLU, NormalHeInitialization)
 ```
 
 **Warning:** The input layer is not implicit (you can just specify the number of neurons).
@@ -48,10 +50,11 @@ Finally, you should initialize the model by the initialize method.
 The model should be trained by the fit method. You must specify the number of epochs and data.
 
 ```kotlin
-model.fit(100, data)
+model.fit(100, data, batchSize = 32)
 ```
 
-By default, the model uses stochastic gradient descent. Also, it prints the recap of each epoch.
+By default, the model uses stochastic gradient descent. Also, it prints the recap of each epoch. You can specify the
+batch size.
 When the training is done, accuracy and loss are printed in ```/resources/plots```.
 
 ### 3.4 Use the model
@@ -64,6 +67,7 @@ model.test(data)
 
 ### 3.5 More
 
+²
 You can use DebugTools to print the model's weights and deltas.
 
 ```kotlin
@@ -72,10 +76,12 @@ var debugTools = DebugTools(model)
 // Every x epochs, the weights and deltas are stored
 debugTools.archiveWeights()
 debugTools.archiveDeltas()
+debugTools.archiveBias()
 
 // To print the weights and deltas
 debugTools.printWeights()
 debugTools.printDeltas()
+debugTools.printBias()
 
 // You can find plots in /resources/plots/debug
 ```
@@ -85,7 +91,4 @@ debugTools.printDeltas()
 In the future, I would like to add more features like :
 
 - L1 and L2 regularization
-- Adam optimizer
-- Initialization methods
-- Bias Gestion
 - Early stopping

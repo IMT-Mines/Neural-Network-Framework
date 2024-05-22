@@ -4,13 +4,13 @@ import kotlin.math.sqrt
 
 interface Optimizer {
 
-    fun optimize(model: NeuralNetwork, loss: DoubleArray)
+    fun minimize(model: NeuralNetwork, loss: DoubleArray)
 
 }
 
 class SGD(private var learningRate: Double = 0.01) : Optimizer {
 
-    override fun optimize(model: NeuralNetwork, loss: DoubleArray) {
+    override fun minimize(model: NeuralNetwork, loss: DoubleArray) {
         val layers = model.layers
         val lastLayer = layers.last()
 
@@ -56,7 +56,7 @@ class Adam(
     private var epsilon: Double = 1e-8
 ) : Optimizer {
 
-    override fun optimize(model: NeuralNetwork, loss: DoubleArray) {
+    override fun minimize(model: NeuralNetwork, loss: DoubleArray) {
         val layers = model.layers
         val lastLayer = layers.last()
 
@@ -98,7 +98,5 @@ class Adam(
                 neuron.bias -= learningRate * neuron.delta
             }
         }
-
-
     }
 }

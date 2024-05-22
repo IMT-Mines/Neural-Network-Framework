@@ -47,7 +47,7 @@ class BinaryClassification {
         // Create the model
         val model = NeuralNetwork(
             loss = BinaryCrossEntropy,
-            optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8)
+            optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999)
         )
         model.addLayer(Layer(33))
         model.addLayer(Layer(33, LeakyReLU, NormalHeInitialization))

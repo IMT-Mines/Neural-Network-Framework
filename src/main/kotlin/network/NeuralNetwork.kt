@@ -15,7 +15,7 @@ class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SG
 
     private val threadPool = Executors.newFixedThreadPool(512)
 
-    private fun predict(inputs: DoubleArray): DoubleArray {
+    fun predict(inputs: DoubleArray): DoubleArray {
         for (i in 0..<layers.first().nbNeurons) {
             layers.first().neurons[i].output = inputs[i]
         }
@@ -79,7 +79,7 @@ class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SG
                     }, threadPool))
                 }
                 awaitFutures(futures)
-                this.optimizer.optimize(this, lossDerivationSum.map { it / batchSize }.toDoubleArray())
+                this.optimizer.minimize(this, lossDerivationSum.map { it / batchSize }.toDoubleArray())
             }
 
             accuracyChart[epoch] = accuracy.average()
