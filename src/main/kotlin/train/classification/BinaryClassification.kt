@@ -2,7 +2,6 @@ package main.kotlin.train.classification
 
 import main.kotlin.network.*
 import main.kotlin.train.DataLoader
-import main.kotlin.utils.Utils
 
 class BinaryClassification {
 
@@ -16,10 +15,13 @@ class BinaryClassification {
         // Load the data
         val data = DataLoader.loadSonar()
         data.normalizeMinMaxFeatures()
-        val (train, test) = data.split(0.8)
+        val splitData = data.split(0.8)
 
         // Create the model
-        val model = NeuralNetwork(loss = BinaryCrossEntropy, optimizer = SGD(learningRate = 0.001))
+        val model = NeuralNetwork(
+            trainingMethod = StandardTraining(splitData, batchSize = 1),
+            loss = BinaryCrossEntropy, optimizer = SGD(learningRate = 0.001)
+        )
         model.addLayer(Layer(60))
         model.addLayer(Layer(60, LeakyReLU, NormalHeInitialization))
         model.addLayer(Layer(10, LeakyReLU, NormalHeInitialization))
@@ -27,9 +29,9 @@ class BinaryClassification {
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, batchSize = 1, false)
+        model.fit(1000)
         model.save("src/main/resources/sonarModel.txt")
-        model.test(test)
+        model.test()
     }
 
     /**
@@ -42,10 +44,11 @@ class BinaryClassification {
         // Load the data
         val data = DataLoader.loadIonosphere()
         data.normalizeMinMaxFeatures()
-        val (train, test) = data.split(0.8)
+        val splitData = data.split(0.8)
 
         // Create the model
         val model = NeuralNetwork(
+            trainingMethod = StandardTraining(splitData, batchSize = 1),
             loss = BinaryCrossEntropy,
             optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999)
         )
@@ -57,8 +60,8 @@ class BinaryClassification {
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, batchSize = 1)
+        model.fit(1000)
         model.save("src/main/resources/ionosphereModel.txt")
-        model.test(test)
+        model.test()
     }
 }

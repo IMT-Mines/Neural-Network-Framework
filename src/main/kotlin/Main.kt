@@ -1,5 +1,6 @@
 package main.kotlin
 
+import main.kotlin.train.classification.MultiClassification
 import main.kotlin.train.deepReinforcement.ReinforcementLearning
 
 //import DeepQLearning
@@ -10,11 +11,11 @@ fun main() {
 //    val binaryClassification = BinaryClassification()
 //    binaryClassification.ionosphereClassification()
 
-//    val multiClassification = MultiClassification()
-//    multiClassification.digitsClassification()
+    val multiClassification = MultiClassification()
+    multiClassification.digitsClassification()
 
-    val reinforcementLearning = ReinforcementLearning()
-    reinforcementLearning.foodGameTraining()
+//    val reinforcementLearning = ReinforcementLearning()
+//    reinforcementLearning.foodGameTraining()
 
 //    val tester = Tester()
 //    tester.testInitialization()
