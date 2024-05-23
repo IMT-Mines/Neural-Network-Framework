@@ -2,13 +2,12 @@ package main.kotlin.reinforcement
 
 import main.kotlin.network.NeuralNetwork
 
-
-class PPOAgent(private val model: NeuralNetwork, private val environment: Environment) {
+class PPOAgent<E : Enum<E>>(private val model: NeuralNetwork, private val environment: Environment<E>) {
 
     fun train(epochs: Int, batchSize: Int = 1, gamma: Double = 0.99, epsilon: Double = 0.2) {
         for (epoch in 0 until epochs) {
             val states = mutableListOf<DoubleArray>()
-            val actions = mutableListOf<Action>()
+            val actions = mutableListOf<E>()
             val rewards = mutableListOf<Double>()
             val logProbs = mutableListOf<Double>()
 
