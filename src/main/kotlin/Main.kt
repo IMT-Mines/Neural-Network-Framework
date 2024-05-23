@@ -3,7 +3,7 @@ package main.kotlin
 import main.kotlin.train.classification.MultiClassification
 
 //import DeepQLearning
-//import main.kotlin.train.deepReinforcement.Environment
+//import main.kotlin.train.deepReinforcement.main.kotlin.train.deepReinforcement.Environment
 
 
 fun main() {
@@ -13,7 +13,7 @@ fun main() {
 //    val multiClassification = MultiClassification()
 //    multiClassification.digitsClassification()
 
-//    val environment = Environment(3)
+//    val environment = main.kotlin.train.deepReinforcement.Environment(3)
 //    val learningRate = 0.01
 //    val deepQLearning = DeepQLearning(environment, learningRate)
 //    deepQLearning.train(episodes = 150, epsilon = 1.0, replayBufferSize = 10000)

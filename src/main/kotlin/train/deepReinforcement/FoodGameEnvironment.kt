@@ -1,15 +1,9 @@
+package main.kotlin.train.deepReinforcement
+
+import main.kotlin.reinforcement.Action
+import main.kotlin.reinforcement.Environment
 import kotlin.math.pow
 import kotlin.math.sqrt
-
-enum class Action {
-    FORWARD, BACKWARD, TURN_LEFT, TURN_RIGHT
-}
-
-interface Environment {
-    fun reset(): DoubleArray
-    fun step(action: Action): Pair<DoubleArray, Double>
-    fun isDone(): Boolean
-}
 
 class FoodGameEnvironment(
     private val mapSize: Int = 5, // 5x5 map | 1 = player, -1 = food
@@ -81,5 +75,4 @@ class FoodGameEnvironment(
             println()
         }
     }
-
 }
