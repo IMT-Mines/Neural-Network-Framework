@@ -1,11 +1,7 @@
 package main.kotlin.reinforcement
 
-enum class Action {
-    FORWARD, BACKWARD, TURN_LEFT, TURN_RIGHT
-}
-
-interface Environment {
+interface Environment<E: Enum<E>> {
     fun reset(): DoubleArray
-    fun step(action: Action): Pair<DoubleArray, Double>
+    fun step(action: E): Pair<DoubleArray, Double>
     fun isDone(): Boolean
 }

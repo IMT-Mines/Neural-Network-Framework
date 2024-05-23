@@ -1,16 +1,19 @@
 package main.kotlin.train.deepReinforcement
 
-import main.kotlin.reinforcement.Action
 import main.kotlin.reinforcement.Environment
 import kotlin.math.pow
 import kotlin.math.sqrt
+
+enum class FoodGameAction {
+    FORWARD, BACKWARD, TURN_LEFT, TURN_RIGHT
+}
 
 class FoodGameEnvironment(
     private val mapSize: Int = 5, // 5x5 map | 1 = player, -1 = food
     private var state: DoubleArray = DoubleArray(mapSize * mapSize) { 0.0 },
     private val foodPosition: Pair<Int, Int> = Pair(mapSize - 1, mapSize - 1),
     private var playerPosition: Pair<Int, Int> = Pair(0, 0)
-) : Environment {
+) : Environment<FoodGameAction> {
 
     override fun reset(): DoubleArray {
         state = DoubleArray(mapSize * mapSize) { 0.0 }
@@ -19,21 +22,21 @@ class FoodGameEnvironment(
         return state
     }
 
-    override fun step(action: Action): Pair<DoubleArray, Double> {
+    override fun step(action: FoodGameAction): Pair<DoubleArray, Double> {
         val (x, y) = playerPosition
         state[playerPosition.first * mapSize + playerPosition.second] = 0.0
         val distance = calculateDistance()
         when (action) {
-            Action.FORWARD -> {
+            FoodGameAction.FORWARD -> {
                 if (x < mapSize - 1) playerPosition = Pair(x + 1, y)
             }
-            Action.BACKWARD -> {
+            FoodGameAction.BACKWARD -> {
                 if (x > 0) playerPosition = Pair(x - 1, y)
             }
-            Action.TURN_LEFT -> {
+            FoodGameAction.TURN_LEFT -> {
                 if (y > 0) playerPosition = Pair(x, y - 1)
             }
-            Action.TURN_RIGHT -> {
+            FoodGameAction.TURN_RIGHT -> {
                 if (y < mapSize - 1) playerPosition = Pair(x, y + 1)
             }
         }
