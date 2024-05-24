@@ -1,7 +1,7 @@
 plugins {
     java
-    kotlin("jvm") version "1.9.23"
     `maven-publish`
+    kotlin("jvm") version "1.9.23"
 }
 
 group = "org.neuralnetwork"
@@ -14,18 +14,21 @@ repositories {
 
 dependencies {
     implementation(kotlin("reflect"))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
     implementation("org.jetbrains.kotlinx:kotlin-statistics-jvm:0.2.1")
     implementation("org.slf4j:slf4j-simple:2.0.13")
     implementation("org.slf4j:slf4j-api:2.0.13")
-    testImplementation(kotlin("test"))
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
 kotlin {
     jvmToolchain(21)
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions.jvmTarget = "21"
+}
+
+
 
 publishing {
     publications {
