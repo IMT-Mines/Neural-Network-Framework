@@ -1,19 +1,19 @@
 package main.kotlin.network
 
-import main.kotlin.charts.Chart
 import main.kotlin.train.Data
-import main.kotlin.utils.DebugTools
-import main.kotlin.utils.Utils.Companion.awaitFutures
-import org.jetbrains.kotlinx.kandy.util.color.Color
 import java.io.File
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
 
-class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SGD(0.001)) {
+class NeuralNetwork(var trainingMethod: Train, var loss: Loss = SquaredError, var optimizer: Optimizer = SGD(0.001)) {
 
     val layers = mutableListOf<Layer>()
 
-    private val threadPool = Executors.newFixedThreadPool(512)
+    fun fit(epoch: Int, debug: Boolean = false) {
+        this.trainingMethod.fit(this, epoch, debug)
+    }
+
+    fun test() {
+        this.trainingMethod.test(this)
+    }
 
     fun predict(inputs: DoubleArray): DoubleArray {
         for (i in 0..<layers.first().nbNeurons) {
@@ -45,81 +45,6 @@ class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SG
             }
         }
 
-    }
-
-    fun fit(epochs: Int, data: Data, batchSize: Int = 1, debug: Boolean = false) {
-        if (data.size() % batchSize != 0) throw IllegalArgumentException("The batch size must be a multiple of the data size")
-
-        val debugTools = DebugTools(this)
-        println("\n======================= TRAINING =======================\n")
-        val lossChart: MutableMap<Int, Double> = mutableMapOf()
-        val accuracyChart: MutableMap<Int, Double> = mutableMapOf()
-
-        val batchCount = data.size() / batchSize
-
-        for (epoch in 0..<epochs) {
-            if (debug) debugTools.run { archiveWeights(); archiveDelta(); archiveBias() }
-            val accuracy = DoubleArray(data.size())
-            data.shuffle()
-            var totalLoss = 0.0
-            for (batchIndex in 0 until batchCount) {
-                val lossDerivationSum = DoubleArray(layers.last().nbNeurons)
-                val futures = mutableListOf<CompletableFuture<*>>()
-                for (index in 0 until batchSize) {
-                    futures.add(CompletableFuture.runAsync({
-                        val sample = data.get(batchIndex * batchSize + index)
-                        val (inputs, target) = sample
-                        val outputs = predict(inputs)
-
-                        for (i in outputs.indices) {
-                            lossDerivationSum[i] += this.loss.derivative(outputs[i], target[i])
-                        }
-                        accuracy[batchIndex * batchSize + index] = getAccuracy(outputs, target)
-                        totalLoss += this.loss.averageLoss(outputs, target)
-                    }, threadPool))
-                }
-                awaitFutures(futures)
-                this.optimizer.minimize(this, lossDerivationSum.map { it / batchSize }.toDoubleArray())
-            }
-
-            accuracyChart[epoch] = accuracy.average()
-            lossChart[epoch] = totalLoss / data.size()
-            println(
-                "Epoch: %d | Training Loss: %10.4f | Accuracy: %10.2f".format(
-                    epoch,
-                    totalLoss / data.size(),
-                    accuracy.average()
-                )
-            )
-        }
-
-        if (debug) debugTools.run { printDeltas(); printWeights();printBias() }
-        threadPool.shutdown()
-        Chart.lineChart(accuracyChart, "Model accuracy", "Epoch", "Accuracy", Color.GREEN, "src/main/resources/plots")
-        Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
-    }
-
-    fun test(data: Data) {
-        println("\n======================= TESTING =======================\n")
-        var accuracy = 0.0
-        for (index in 0..<data.size()) {
-            val sample = data.get(index)
-            val inputs = sample.first
-            val target = sample.second
-            val outputs = this.predict(inputs)
-
-            accuracy += getAccuracy(outputs, target)
-            println(
-                "Output: ${outputs.joinToString { "%.2f".format(it) }} | Target: ${
-                    target.joinToString {
-                        "%.2f".format(
-                            it
-                        )
-                    }
-                }"
-            )
-        }
-        println("\nThe Accuracy on the test set is: ${accuracy / data.size()}")
     }
 
     fun addLayer(layer: Layer) {
@@ -191,19 +116,5 @@ class NeuralNetwork(var loss: Loss = SquaredError, var optimizer: Optimizer = SG
             sb.append("\n_________________________________________________________________")
         }
         return sb.toString()
-    }
-
-    private fun getAccuracy(outputs: DoubleArray, target: DoubleArray): Double {
-        return if (outputs.size == 1) {
-            when {
-                outputs[0] >= 0.5 && target[0] == 1.0 -> 1.0
-                outputs[0] < 0.5 && target[0] == 0.0 -> 1.0
-                else -> 0.0
-            }
-        } else {
-            if (outputs.withIndex().maxByOrNull { it.value }?.index == target.withIndex()
-                    .maxByOrNull { it.value }?.index
-            ) 1.0 else 0.0
-        }
     }
 }

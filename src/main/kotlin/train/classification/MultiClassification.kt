@@ -2,7 +2,6 @@ package main.kotlin.train.classification
 
 import main.kotlin.network.*
 import main.kotlin.train.DataLoader
-import main.kotlin.utils.Utils
 
 class MultiClassification {
 
@@ -17,11 +16,13 @@ class MultiClassification {
         // Load the data
         val data = DataLoader.loadIris()
         data.normalizeMinMaxFeatures()
-        val (train, test) = data.split(0.8)
+        val splitData = data.split(0.8)
 
         // Create the model
         val model = NeuralNetwork(
-            loss = CategoricalCrossEntropy, Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999)
+            trainingMethod = StandardTraining(splitData, batchSize = 2),
+            loss = CategoricalCrossEntropy,
+            optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999)
         )
         model.addLayer(Layer(4))
         model.addLayer(Layer(20, LeakyReLU, NormalHeInitialization))
@@ -30,9 +31,9 @@ class MultiClassification {
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, batchSize = 2)
+        model.fit(1000)
         model.save("src/main/resources/irisModel.txt")
-        model.test(test)
+        model.test()
     }
 
     /**
@@ -45,10 +46,11 @@ class MultiClassification {
         // Load the data
         val data = DataLoader.loadDigits()
         data.normalizeMinMaxFeatures()
-        val (train, test) = data.split(0.8)
+        val splitData = data.split(0.8)
 
         // Create the model
         val model = NeuralNetwork(
+            trainingMethod = StandardTraining(splitData, batchSize = 64),
             loss = CategoricalCrossEntropy,
             optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999)
         )
@@ -59,9 +61,9 @@ class MultiClassification {
         model.initialize()
 
         // Train and test the model
-        model.fit(50, train, batchSize = 64)
+        model.fit(50)
         model.save("src/main/resources/digitsModel.txt")
-        model.test(test)
+        model.test()
     }
 
     /**
@@ -73,10 +75,11 @@ class MultiClassification {
         // Load the data
         val data = DataLoader.loadSeeds()
         data.normalizeMinMaxFeatures()
-        val (train, test) = data.split(0.8)
+        val splitData = data.split(0.8)
 
         // Create the model
         val model = NeuralNetwork(
+            trainingMethod = StandardTraining(splitData, batchSize = 2),
             loss = CategoricalCrossEntropy,
             optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999)
         )
@@ -87,8 +90,8 @@ class MultiClassification {
         model.initialize()
 
         // Train and test the model
-        model.fit(1000, train, batchSize = 2)
+        model.fit(1000)
         model.save("src/main/resources/seedsModel.txt")
-        model.test(test)
+        model.test()
     }
 }
