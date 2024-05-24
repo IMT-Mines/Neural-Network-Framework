@@ -1,10 +1,11 @@
 plugins {
+    java
     kotlin("jvm") version "1.9.23"
     `maven-publish`
 }
 
 group = "org.neuralnetwork"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
     mavenCentral()
@@ -26,15 +27,13 @@ kotlin {
     jvmToolchain(21)
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            create<MavenPublication>("mavenJava") {
-                from(components["java"])
-                groupId = project.group.toString()
-                artifactId = project.name
-                version = project.version.toString()
-            }
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
         }
     }
 }
