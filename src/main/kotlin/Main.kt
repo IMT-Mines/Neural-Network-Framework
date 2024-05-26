@@ -11,11 +11,12 @@ fun main() {
 //    val binaryClassification = BinaryClassification()
 //    binaryClassification.ionosphereClassification()
 
-    val multiClassification = MultiClassification()
-    multiClassification.digitsClassification()
+//    val multiClassification = MultiClassification()
+//    multiClassification.digitsClassification()
 
-//    val reinforcementLearning = ReinforcementLearning()
-//    reinforcementLearning.foodGameTraining()
+    val reinforcementLearning = ReinforcementLearning()
+    reinforcementLearning.foodGameTraining()
+    reinforcementLearning.test()
 
 //    val tester = Tester()
 //    tester.testInitialization()

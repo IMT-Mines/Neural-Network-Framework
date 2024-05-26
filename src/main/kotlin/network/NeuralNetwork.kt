@@ -1,6 +1,5 @@
 package main.kotlin.network
 
-import main.kotlin.train.Data
 import java.io.File
 
 class NeuralNetwork(var trainingMethod: Train, var loss: Loss = SquaredError, var optimizer: Optimizer = SGD(0.001)) {

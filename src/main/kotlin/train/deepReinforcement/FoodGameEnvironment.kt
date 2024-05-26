@@ -11,21 +11,25 @@ enum class FoodGameAction {
 class FoodGameEnvironment(
     private val mapSize: Int = 5, // 5x5 map | 1 = player, -1 = food
     private var state: DoubleArray = DoubleArray(mapSize * mapSize) { 0.0 },
-    private val foodPosition: Pair<Int, Int> = Pair(mapSize - 1, mapSize - 1),
+    private var foodPosition: Pair<Int, Int> = Pair(mapSize - 1, mapSize - 1),
     private var playerPosition: Pair<Int, Int> = Pair(0, 0)
 ) : Environment<FoodGameAction> {
 
     override fun reset(): DoubleArray {
+        playerPosition = Pair(0, 0)
+        // random food position
+        foodPosition = Pair((0 until mapSize).random(), (0 until mapSize).random())
         state = DoubleArray(mapSize * mapSize) { 0.0 }
         state[playerPosition.first * mapSize + playerPosition.second] = 1.0
         state[foodPosition.first * mapSize + foodPosition.second] = -1.0
         return state
     }
 
-    override fun step(action: FoodGameAction): Pair<DoubleArray, Double> {
+    override fun step(actionIndex: Int): Pair<DoubleArray, Double> {
         val (x, y) = playerPosition
         state[playerPosition.first * mapSize + playerPosition.second] = 0.0
         val distance = calculateDistance()
+        val action = FoodGameAction.entries[actionIndex]
         when (action) {
             FoodGameAction.FORWARD -> {
                 if (x < mapSize - 1) playerPosition = Pair(x + 1, y)
@@ -77,5 +81,21 @@ class FoodGameEnvironment(
             }
             println()
         }
+    }
+
+    override fun toString(): String {
+        var str = ""
+        for (i in 0 until mapSize) {
+            for (j in 0 until mapSize) {
+                val index = i * mapSize + j
+                str += when {
+                    state[index] == 1.0 -> "P "
+                    state[index] == -1.0 -> "F "
+                    else -> ". "
+                }
+            }
+            str += "\n"
+        }
+        return str
     }
 }

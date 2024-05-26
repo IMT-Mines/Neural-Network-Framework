@@ -14,6 +14,75 @@ interface Train {
     fun test(model: NeuralNetwork)
 }
 
+class QLearning<E : Enum<E>>(
+    private val environment: Environment<E>,
+    private val maxIteration: Int
+) : Train {
+
+
+    override fun fit(model: NeuralNetwork, epochs: Int, debug: Boolean) {
+        val gamma = 0.9
+        val lossChart: MutableMap<Int, Double> = mutableMapOf()
+        println("\n======================= TRAINING =======================\n")
+
+        for (epoch in 0 until epochs) {
+            var state = environment.reset()
+            var totalLoss = 0.0
+            var nbIteration = 0
+            for (iteration in 0 until maxIteration) {
+                val qValues = model.predict(state)
+                val action = qValues.withIndex().maxByOrNull { it.value }?.index!!
+
+                val (nextState, reward) = environment.step(action)
+
+                val nextQValues = model.predict(nextState)
+                val nextAction = nextQValues.withIndex().maxByOrNull { it.value }?.index!!
+                val target = reward + gamma * nextQValues[nextAction]
+
+                val lossDerivative = DoubleArray(model.layers.last().nbNeurons) { 0.0 }
+                lossDerivative[action] = model.loss.derivative(qValues[action], target)
+
+                model.optimizer.minimize(model, lossDerivative)
+
+                state = nextState
+
+                totalLoss += model.loss.lossCalcul(qValues[action], target)
+                nbIteration++
+
+                if (environment.isDone()) {
+                    println("Finished in $iteration iterations")
+                    break
+                }
+            }
+
+            lossChart[epoch] = totalLoss / nbIteration
+            println("Epoch: %d | Training Loss: %10.4f".format(epoch, totalLoss / nbIteration))
+        }
+        Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
+    }
+
+
+    override fun test(model: NeuralNetwork) {
+
+        for (i in 0 until 1) {
+            var state = environment.reset()
+            for (j in 0 until 1000) {
+                val action = model.predict(state).withIndex().maxByOrNull { it.value }?.index
+                val (nextState, reward) = environment.step(action!!)
+                println("Action: $action | Reward: $reward")
+                println(environment)
+                state = nextState
+                if (environment.isDone()) {
+                    println("Done")
+                    break
+                }
+            }
+        }
+    }
+
+
+}
+
 class PPOTraining<E : Enum<E>>(
     private val environment: Environment<E>,
     private val gamma: Double = 0.99,
