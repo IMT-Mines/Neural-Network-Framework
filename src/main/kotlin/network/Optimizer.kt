@@ -1,16 +1,62 @@
 package main.kotlin.network
 
+import java.util.concurrent.Executors
 import kotlin.math.sqrt
 
 interface Optimizer {
 
-    fun minimize(model: NeuralNetwork, loss: DoubleArray)
+    class Gradients(val weightGradients: Array<Array<DoubleArray>>, val biasGradients: Array<DoubleArray>)
+
+    fun minimize(model: NeuralNetwork, targets: List<DoubleArray>, outputs: List<DoubleArray>)
+
+    fun update(model: NeuralNetwork, gradients: Gradients, batchSize: Int)
+
+    fun calculGradiant(model: NeuralNetwork, gradients: Gradients, targets: DoubleArray, outputs: DoubleArray)
 
 }
 
 class SGD(private var learningRate: Double = 0.01) : Optimizer {
 
-    override fun minimize(model: NeuralNetwork, loss: DoubleArray) {
+    private val threadPool = Executors.newFixedThreadPool(512)
+
+    override fun minimize(model: NeuralNetwork, targets: List<DoubleArray>, outputs: List<DoubleArray>) {
+        val layers = model.layers
+        val weightGradients = Array(layers.size) { layerIndex ->
+            Array(layers[layerIndex].neurons.size) { neuronIndex ->
+                DoubleArray(layers[layerIndex].neurons[neuronIndex].weights.size) { 0.0 }
+            }
+        }
+        val biasGradients = Array(layers.size) { layerIndex ->
+            DoubleArray(layers[layerIndex].neurons.size) { 0.0 }
+        }
+        val gradients = Optimizer.Gradients(weightGradients, biasGradients)
+
+
+        for (i in targets.indices) {
+            calculGradiant(model, gradients, targets[i], outputs[i])
+        }
+
+        update(model, gradients, targets.size)
+    }
+
+    override fun update(model: NeuralNetwork, gradients: Optimizer.Gradients, batchSize: Int) {
+        for (layerIndex in 1 until model.layers.size) {
+            for (neuronIndex in model.layers[layerIndex].neurons.indices) {
+                val neuron = model.layers[layerIndex].neurons[neuronIndex]
+                for (weightIndex in neuron.weights.indices) {
+                    neuron.weights[weightIndex] -= learningRate * gradients.weightGradients[layerIndex][neuronIndex][weightIndex] / batchSize
+                }
+                neuron.bias -= learningRate * gradients.biasGradients[layerIndex][neuronIndex] / batchSize
+            }
+        }
+    }
+
+    override fun calculGradiant(
+        model: NeuralNetwork,
+        gradients: Optimizer.Gradients,
+        targets: DoubleArray,
+        outputs: DoubleArray
+    ) {
         val layers = model.layers
         val lastLayer = layers.last()
 
@@ -18,11 +64,12 @@ class SGD(private var learningRate: Double = 0.01) : Optimizer {
         for (neuronIndex in lastLayer.neurons.indices) {
             val neuron = lastLayer.neurons[neuronIndex]
             for (weightIndex in neuron.weights.indices) {
-                neuron.delta = loss[neuronIndex] * activationOutputsLayerDerivative[neuronIndex]
+                val derivativeLoss = model.loss.derivative(outputs[neuronIndex], targets[neuronIndex])
+                neuron.delta = derivativeLoss * activationOutputsLayerDerivative[neuronIndex]
                 val previousLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
-                neuron.weights[weightIndex] -= learningRate * neuron.delta * previousLayerNeuron.output
+                gradients.weightGradients[layers.size - 1][neuronIndex][weightIndex] += neuron.delta * previousLayerNeuron.output
             }
-            neuron.bias -= learningRate * neuron.delta
+            gradients.biasGradients[layers.size - 1][neuronIndex] += neuron.delta
         }
 
         for (layerIndex in layers.size - 2 downTo 1) {
@@ -37,15 +84,11 @@ class SGD(private var learningRate: Double = 0.01) : Optimizer {
                     }
                     neuron.delta = lossGradiant * activationOutputsDerivatives[neuronIndex]
                     val previousLayerNeuron = layers[layerIndex - 1].neurons[weightIndex]
-                    neuron.weights[weightIndex] -= learningRate * neuron.delta * previousLayerNeuron.output
+                    gradients.weightGradients[layerIndex][neuronIndex][weightIndex] += neuron.delta * previousLayerNeuron.output
                 }
-                neuron.bias -= learningRate * neuron.delta
+                gradients.biasGradients[layerIndex][neuronIndex] += neuron.delta
             }
         }
-//        val futures = mutableListOf<CompletableFuture<*>>()
-//        futures.add(CompletableFuture.runAsync({
-//        }, threadPool))
-//        awaitFutures(futures)
     }
 }
 
@@ -56,7 +99,46 @@ class Adam(
     private var epsilon: Double = 1e-8
 ) : Optimizer {
 
-    override fun minimize(model: NeuralNetwork, loss: DoubleArray) {
+    private val threadPool = Executors.newFixedThreadPool(512)
+
+    override fun minimize(model: NeuralNetwork, targets: List<DoubleArray>, outputs: List<DoubleArray>) {
+        val layers = model.layers
+        val weightGradients = Array(layers.size) { layerIndex ->
+            Array(layers[layerIndex].neurons.size) { neuronIndex ->
+                DoubleArray(layers[layerIndex].neurons[neuronIndex].weights.size) { 0.0 }
+            }
+        }
+        val biasGradients = Array(layers.size) { layerIndex ->
+            DoubleArray(layers[layerIndex].neurons.size) { 0.0 }
+        }
+        val gradients = Optimizer.Gradients(weightGradients, biasGradients)
+
+
+        for (i in targets.indices) {
+            calculGradiant(model, gradients, targets[i], outputs[i])
+        }
+
+        update(model, gradients, targets.size)
+    }
+
+    override fun update(model: NeuralNetwork, gradients: Optimizer.Gradients, batchSize: Int) {
+        for (layerIndex in 1 until model.layers.size) {
+            for (neuronIndex in model.layers[layerIndex].neurons.indices) {
+                val neuron = model.layers[layerIndex].neurons[neuronIndex]
+                for (weightIndex in neuron.weights.indices) {
+                    neuron.weights[weightIndex] -= learningRate * gradients.weightGradients[layerIndex][neuronIndex][weightIndex] / batchSize
+                }
+                neuron.bias -= learningRate * gradients.biasGradients[layerIndex][neuronIndex] / batchSize
+            }
+        }
+    }
+
+    override fun calculGradiant(
+        model: NeuralNetwork,
+        gradients: Optimizer.Gradients,
+        targets: DoubleArray,
+        outputs: DoubleArray
+    ) {
         val layers = model.layers
         val lastLayer = layers.last()
 
@@ -64,16 +146,17 @@ class Adam(
         for (neuronIndex in lastLayer.neurons.indices) {
             val neuron = lastLayer.neurons[neuronIndex]
             for (weightIndex in neuron.weights.indices) {
-                neuron.delta = loss[neuronIndex] * activationOutputsLayerDerivative[neuronIndex]
+                val derivativeLoss = model.loss.derivative(outputs[neuronIndex], targets[neuronIndex])
+                neuron.delta = derivativeLoss * activationOutputsLayerDerivative[neuronIndex]
                 val previousLayerNeuron = layers[layers.size - 2].neurons[weightIndex]
                 val gradient = neuron.delta * previousLayerNeuron.output
                 neuron.m[weightIndex] = beta1 * neuron.m[weightIndex] + (1 - beta1) * gradient
                 neuron.v[weightIndex] = beta2 * neuron.v[weightIndex] + (1 - beta2) * gradient * gradient
                 val mHat = neuron.m[weightIndex] / (1 - beta1)
                 val vHat = neuron.v[weightIndex] / (1 - beta2)
-                neuron.weights[weightIndex] -= learningRate * mHat / (sqrt(vHat) + epsilon)
-                neuron.bias -= learningRate * neuron.delta
+                gradients.weightGradients[layers.size - 1][neuronIndex][weightIndex] += mHat / (sqrt(vHat) + epsilon)
             }
+            gradients.biasGradients[layers.size - 1][neuronIndex] += neuron.delta
         }
 
         for (layerIndex in layers.size - 2 downTo 1) {
@@ -93,9 +176,9 @@ class Adam(
                     neuron.v[weightIndex] = beta2 * neuron.v[weightIndex] + (1 - beta2) * gradient * gradient
                     val mHat = neuron.m[weightIndex] / (1 - beta1)
                     val vHat = neuron.v[weightIndex] / (1 - beta2)
-                    neuron.weights[weightIndex] -= learningRate * mHat / (sqrt(vHat) + epsilon)
+                    gradients.weightGradients[layerIndex][neuronIndex][weightIndex] += mHat / (sqrt(vHat) + epsilon)
                 }
-                neuron.bias -= learningRate * neuron.delta
+                gradients.biasGradients[layerIndex][neuronIndex] += neuron.delta
             }
         }
     }

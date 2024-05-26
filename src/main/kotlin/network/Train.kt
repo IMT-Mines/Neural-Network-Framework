@@ -4,9 +4,7 @@ import main.kotlin.charts.Chart
 import main.kotlin.reinforcement.Environment
 import main.kotlin.train.Data
 import main.kotlin.utils.DebugTools
-import main.kotlin.utils.Utils.Companion.awaitFutures
 import org.jetbrains.kotlinx.kandy.util.color.Color
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 
 interface Train {
@@ -42,7 +40,7 @@ class QLearning<E : Enum<E>>(
                 val lossDerivative = DoubleArray(model.layers.last().nbNeurons) { 0.0 }
                 lossDerivative[action] = model.loss.derivative(qValues[action], target)
 
-                model.optimizer.minimize(model, lossDerivative)
+//                model.optimizer.minimize(model, lossDerivative)
 
                 state = nextState
 
@@ -148,23 +146,18 @@ class StandardTraining(
             data.shuffle()
             var totalLoss = 0.0
             for (batchIndex in 0 until batchCount) {
-                val lossDerivationSum = DoubleArray(model.layers.last().nbNeurons)
-                val futures = mutableListOf<CompletableFuture<*>>()
+                val targetsList = mutableListOf<DoubleArray>()
+                val outputsList = mutableListOf<DoubleArray>()
                 for (index in 0 until batchSize) {
-                    futures.add(CompletableFuture.runAsync({
-                        val sample = data.get(batchIndex * batchSize + index)
-                        val (inputs, target) = sample
-                        val outputs = model.predict(inputs)
-
-                        for (i in outputs.indices) {
-                            lossDerivationSum[i] += model.loss.derivative(outputs[i], target[i])
-                        }
-                        accuracy[batchIndex * batchSize + index] = getAccuracy(outputs, target)
-                        totalLoss += model.loss.averageLoss(outputs, target)
-                    }, threadPool))
+                    val sample = data.get(batchIndex * batchSize + index)
+                    val (inputs, target) = sample
+                    val outputs = model.predict(inputs)
+                    accuracy[batchIndex * batchSize + index] = getAccuracy(outputs, target)
+                    totalLoss += model.loss.averageLoss(outputs, target)
+                    targetsList.add(target)
+                    outputsList.add(outputs)
                 }
-                awaitFutures(futures)
-                model.optimizer.minimize(model, lossDerivationSum.map { it / batchSize }.toDoubleArray())
+                model.optimizer.minimize(model, targetsList, outputsList)
             }
 
             accuracyChart[epoch] = accuracy.average()
