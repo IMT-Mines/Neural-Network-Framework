@@ -61,6 +61,10 @@ class FoodGameEnvironment(
         return playerPosition.first == foodPosition.first && playerPosition.second == foodPosition.second
     }
 
+    override fun randomAction(): Int {
+        return (0 until FoodGameAction.entries.size).random()
+    }
+
     private fun calculateDistance(): Double {
         val (x1, y1) = playerPosition
         val (x2, y2) = foodPosition

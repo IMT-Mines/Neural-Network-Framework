@@ -92,3 +92,6 @@ In the future, I would like to add more features like :
 
 - L1 and L2 regularization
 - Early stopping
+- Dropout
+- Cible network
+- Verify the saving and loading of the model

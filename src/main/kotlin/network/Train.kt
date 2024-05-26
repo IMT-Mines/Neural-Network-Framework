@@ -18,10 +18,15 @@ class QLearning<E : Enum<E>>(
     private val maxIteration: Int,
     private val batchSize: Int = 64,
     private val gamma: Double = 0.9,
+    private val epsilonEnd: Double = 0.1,
+    private val epsilonDecay: Double = 0.995,
     maxMemory: Int = 10000
 ) : Train {
 
+    private val epsilonStart: Double = 1.0
     private val memory = ReplayMemory(maxMemory)
+    private var epsilon = epsilonStart
+
 
     override fun fit(model: NeuralNetwork, epochs: Int, debug: Boolean) {
         val lossChart: MutableMap<Int, Double> = mutableMapOf()
@@ -32,13 +37,16 @@ class QLearning<E : Enum<E>>(
             var nbIteration = 0
 
             for (iteration in 0 until maxIteration) {
-                val qValues = model.predict(state)
-                val action = qValues.withIndex().maxByOrNull { it.value }?.index!!
+                var action: Int
+                if (Math.random() < epsilon) {
+                    action = environment.randomAction()
+                } else {
+                    val qValues = model.predict(state)
+                    action = qValues.withIndex().maxByOrNull { it.value }?.index!!
+                }
 
                 val (nextState, reward) = environment.step(action)
-
                 memory.add(Experience(state, action, nextState, reward))
-
                 state = nextState
 
                 if (memory.size() >= batchSize) {
@@ -73,6 +81,7 @@ class QLearning<E : Enum<E>>(
                     break
                 }
             }
+            if (epsilon > epsilonEnd) epsilon *= epsilonDecay
             lossChart[epoch] = totalLoss / nbIteration
             println("Epoch: %d | Training Loss: %10.4f".format(epoch, totalLoss / nbIteration))
         }

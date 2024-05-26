@@ -11,8 +11,8 @@ fun main() {
 //    multiClassification.digitsClassification()
 //
     val reinforcementLearning = ReinforcementLearning()
-//    reinforcementLearning.foodGameTraining()
-    reinforcementLearning.test()
+    reinforcementLearning.foodGameTraining()
+//    reinforcementLearning.test()
 
 //    val tester = Tester()
 //    tester.testInitialization()
