@@ -12,7 +12,7 @@ fun main() {
 //    binaryClassification.ionosphereClassification()
 
     val multiClassification = MultiClassification()
-    multiClassification.irisClassification()
+    multiClassification.digitsClassification()
 //
 //    val reinforcementLearning = ReinforcementLearning()
 //    reinforcementLearning.foodGameTraining()

@@ -1,25 +1,19 @@
 package main.kotlin.network
 
+import main.kotlin.utils.Utils.Companion.awaitFutures
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import kotlin.math.sqrt
 
-interface Optimizer {
+abstract class Optimizer {
 
-    class Gradients(val weightGradients: Array<Array<DoubleArray>>, val biasGradients: Array<DoubleArray>)
-
-    fun minimize(model: NeuralNetwork, targets: List<DoubleArray>, outputs: List<DoubleArray>)
-
-    fun update(model: NeuralNetwork, gradients: Gradients, batchSize: Int)
-
-    fun calculGradiant(model: NeuralNetwork, gradients: Gradients, targets: DoubleArray, outputs: DoubleArray)
-
-}
-
-class SGD(private var learningRate: Double = 0.01) : Optimizer {
+    private val threadsThreshold: Int = 2;
 
     private val threadPool = Executors.newFixedThreadPool(512)
 
-    override fun minimize(model: NeuralNetwork, targets: List<DoubleArray>, outputs: List<DoubleArray>) {
+    class Gradients(val weightGradients: Array<Array<DoubleArray>>, val biasGradients: Array<DoubleArray>)
+
+    fun minimize(model: NeuralNetwork, targets: List<DoubleArray>, outputs: List<DoubleArray>) {
         val layers = model.layers
         val weightGradients = Array(layers.size) { layerIndex ->
             Array(layers[layerIndex].neurons.size) { neuronIndex ->
@@ -29,17 +23,48 @@ class SGD(private var learningRate: Double = 0.01) : Optimizer {
         val biasGradients = Array(layers.size) { layerIndex ->
             DoubleArray(layers[layerIndex].neurons.size) { 0.0 }
         }
-        val gradients = Optimizer.Gradients(weightGradients, biasGradients)
+        val gradients = Gradients(weightGradients, biasGradients)
 
-
-        for (i in targets.indices) {
-            calculGradiant(model, gradients, targets[i], outputs[i])
-        }
+        calcualteGradiants(model, gradients, targets, outputs)
 
         update(model, gradients, targets.size)
     }
 
-    override fun update(model: NeuralNetwork, gradients: Optimizer.Gradients, batchSize: Int) {
+    private fun calcualteGradiants(
+        model: NeuralNetwork,
+        gradients: Gradients,
+        targets: List<DoubleArray>,
+        outputs: List<DoubleArray>
+    ) {
+        if (targets.size < threadsThreshold) {
+            for (i in targets.indices) {
+                calculateGradiant(model, gradients, targets[i], outputs[i])
+            }
+        } else {
+            val futures = mutableListOf<CompletableFuture<*>>()
+            for (i in targets.indices) {
+                futures.add(CompletableFuture.runAsync({
+                    calculateGradiant(model, gradients, targets[i], outputs[i])
+                }, threadPool))
+            }
+            awaitFutures(futures)
+        }
+    }
+
+    abstract fun update(model: NeuralNetwork, gradients: Gradients, batchSize: Int)
+
+    abstract fun calculateGradiant(
+        model: NeuralNetwork,
+        gradients: Gradients,
+        targets: DoubleArray,
+        outputs: DoubleArray
+    )
+
+}
+
+class SGD(private var learningRate: Double = 0.01) : Optimizer() {
+
+    override fun update(model: NeuralNetwork, gradients: Gradients, batchSize: Int) {
         for (layerIndex in 1 until model.layers.size) {
             for (neuronIndex in model.layers[layerIndex].neurons.indices) {
                 val neuron = model.layers[layerIndex].neurons[neuronIndex]
@@ -51,9 +76,9 @@ class SGD(private var learningRate: Double = 0.01) : Optimizer {
         }
     }
 
-    override fun calculGradiant(
+    override fun calculateGradiant(
         model: NeuralNetwork,
-        gradients: Optimizer.Gradients,
+        gradients: Gradients,
         targets: DoubleArray,
         outputs: DoubleArray
     ) {
@@ -97,31 +122,9 @@ class Adam(
     private var beta1: Double = 0.9,
     private var beta2: Double = 0.999,
     private var epsilon: Double = 1e-8
-) : Optimizer {
+) : Optimizer() {
 
-    private val threadPool = Executors.newFixedThreadPool(512)
-
-    override fun minimize(model: NeuralNetwork, targets: List<DoubleArray>, outputs: List<DoubleArray>) {
-        val layers = model.layers
-        val weightGradients = Array(layers.size) { layerIndex ->
-            Array(layers[layerIndex].neurons.size) { neuronIndex ->
-                DoubleArray(layers[layerIndex].neurons[neuronIndex].weights.size) { 0.0 }
-            }
-        }
-        val biasGradients = Array(layers.size) { layerIndex ->
-            DoubleArray(layers[layerIndex].neurons.size) { 0.0 }
-        }
-        val gradients = Optimizer.Gradients(weightGradients, biasGradients)
-
-
-        for (i in targets.indices) {
-            calculGradiant(model, gradients, targets[i], outputs[i])
-        }
-
-        update(model, gradients, targets.size)
-    }
-
-    override fun update(model: NeuralNetwork, gradients: Optimizer.Gradients, batchSize: Int) {
+      override fun update(model: NeuralNetwork, gradients: Gradients, batchSize: Int) {
         for (layerIndex in 1 until model.layers.size) {
             for (neuronIndex in model.layers[layerIndex].neurons.indices) {
                 val neuron = model.layers[layerIndex].neurons[neuronIndex]
@@ -133,9 +136,9 @@ class Adam(
         }
     }
 
-    override fun calculGradiant(
+    override fun calculateGradiant(
         model: NeuralNetwork,
-        gradients: Optimizer.Gradients,
+        gradients: Gradients,
         targets: DoubleArray,
         outputs: DoubleArray
     ) {
