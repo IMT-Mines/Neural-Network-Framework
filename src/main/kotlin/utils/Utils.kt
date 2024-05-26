@@ -1,6 +1,5 @@
 package main.kotlin.utils
 
-import main.kotlin.train.Data
 import java.util.concurrent.CompletableFuture
 import kotlin.math.cos
 import kotlin.math.ln

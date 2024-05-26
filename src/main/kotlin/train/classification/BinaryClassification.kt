@@ -20,16 +20,16 @@ class BinaryClassification {
         // Create the model
         val model = NeuralNetwork(
             trainingMethod = StandardTraining(splitData, batchSize = 1),
-            loss = BinaryCrossEntropy, optimizer = SGD(learningRate = 0.001)
+            loss = BinaryCrossEntropy, optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999)
         )
         model.addLayer(Layer(60))
-        model.addLayer(Layer(60, LeakyReLU, NormalHeInitialization))
+        model.addLayer(Layer(30, LeakyReLU, NormalHeInitialization))
         model.addLayer(Layer(10, LeakyReLU, NormalHeInitialization))
         model.addLayer(Layer(1, Sigmoid, NormalXavierGlorotInitialization))
         model.initialize()
 
         // Train and test the model
-        model.fit(1000)
+        model.fit(300)
         model.save("src/main/resources/sonarModel.txt")
         model.test()
     }

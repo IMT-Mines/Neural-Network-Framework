@@ -8,7 +8,7 @@ class ReinforcementLearning {
         val environment = FoodGameEnvironment()
         val model = NeuralNetwork(
             trainingMethod = QLearning(environment, 1000),
-            optimizer = Adam(0.01, 0.9, 0.999),
+            optimizer = Adam(0.001, 0.9, 0.999),
             loss = MeanSquaredError
         )
         model.addLayer(Layer(25, LeakyReLU, NormalHeInitialization))
@@ -17,7 +17,7 @@ class ReinforcementLearning {
         model.addLayer(Layer(FoodGameAction.entries.size, Softmax, NormalXavierGlorotInitialization))
         model.initialize()
 
-        model.fit(2000)
+        model.fit(300)
         model.save("src/main/resources/foodGameModel.txt")
         model.test()
     }

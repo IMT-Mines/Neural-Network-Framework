@@ -84,9 +84,9 @@ class MultiClassification {
             optimizer = Adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999)
         )
         model.addLayer(Layer(7))
-        model.addLayer(Layer(10, ReLU))
-        model.addLayer(Layer(10, ReLU))
-        model.addLayer(Layer(3, Softmax))
+        model.addLayer(Layer(10, ReLU, NormalHeInitialization))
+        model.addLayer(Layer(10, ReLU, NormalHeInitialization))
+        model.addLayer(Layer(3, Softmax, NormalXavierGlorotInitialization))
         model.initialize()
 
         // Train and test the model

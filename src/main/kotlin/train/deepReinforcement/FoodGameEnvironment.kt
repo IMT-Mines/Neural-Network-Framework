@@ -17,8 +17,8 @@ class FoodGameEnvironment(
 
     override fun reset(): DoubleArray {
         playerPosition = Pair(0, 0)
-        // random food position
-        foodPosition = Pair((0 until mapSize).random(), (0 until mapSize).random())
+//        foodPosition = Pair((0 until mapSize).random(), (0 until mapSize).random())
+        foodPosition = Pair(mapSize - 1, mapSize - 1)
         state = DoubleArray(mapSize * mapSize) { 0.0 }
         state[playerPosition.first * mapSize + playerPosition.second] = 1.0
         state[foodPosition.first * mapSize + foodPosition.second] = -1.0

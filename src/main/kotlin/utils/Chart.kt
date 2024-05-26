@@ -1,4 +1,4 @@
-package main.kotlin.charts
+package main.kotlin.utils
 
 import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
 import org.jetbrains.kotlinx.kandy.dsl.plot

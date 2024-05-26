@@ -1,6 +1,5 @@
 package main.kotlin.utils
 
-import main.kotlin.charts.Chart
 import main.kotlin.network.NeuralNetwork
 import main.kotlin.network.Neuron
 import org.jetbrains.kotlinx.kandy.util.color.Color
