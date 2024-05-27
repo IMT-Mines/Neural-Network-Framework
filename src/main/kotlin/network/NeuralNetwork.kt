@@ -116,4 +116,23 @@ class NeuralNetwork(var trainingMethod: Train, var loss: Loss = SquaredError, va
         }
         return sb.toString()
     }
+
+    fun copy(): NeuralNetwork {
+        val model = NeuralNetwork(trainingMethod, loss, optimizer)
+        for (layer in layers) {
+            model.addLayer(Layer(layer.nbNeurons, layer.activation))
+        }
+        model.initialize()
+        model.copyWeightsFrom(this)
+        return model
+    }
+
+    fun copyWeightsFrom(source: NeuralNetwork) {
+        for (i in this.layers.indices) {
+            for (j in this.layers[i].neurons.indices) {
+                this.layers[i].neurons[j].weights = source.layers[i].neurons[j].weights.copyOf()
+                this.layers[i].neurons[j].bias = source.layers[i].neurons[j].bias
+            }
+        }
+    }
 }

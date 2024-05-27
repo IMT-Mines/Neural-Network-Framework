@@ -19,7 +19,7 @@ class QLearning<E : Enum<E>>(
     private val batchSize: Int = 64,
     private val gamma: Double = 0.9,
     private val epsilonEnd: Double = 0.1,
-    private val epsilonDecay: Double = 0.995,
+    private val epsilonDecay: Double = 0.985,
     maxMemory: Int = 10000
 ) : Train {
 
@@ -29,16 +29,20 @@ class QLearning<E : Enum<E>>(
 
 
     override fun fit(model: NeuralNetwork, epochs: Int, debug: Boolean) {
+        val targetModel = model.copy()
+
         val lossChart: MutableMap<Int, Double> = mutableMapOf()
         println("\n======================= TRAINING =======================\n")
         for (epoch in 0 until epochs) {
             var state = environment.reset()
             var totalLoss = 0.0
             var nbIteration = 0
+            var nbRandomActions = 0
 
             for (iteration in 0 until maxIteration) {
-                var action: Int
+                val action: Int
                 if (Math.random() < epsilon) {
+                    nbRandomActions++
                     action = environment.randomAction()
                 } else {
                     val qValues = model.predict(state)
@@ -47,15 +51,18 @@ class QLearning<E : Enum<E>>(
 
                 val (nextState, reward) = environment.step(action)
                 memory.add(Experience(state, action, nextState, reward))
+
+                if (debug)  println("Iteration: $iteration | Action: $action | Reward: $reward | Next State: $nextState")
+
                 state = nextState
 
-                if (memory.size() >= batchSize) {
+                if (memory.size() > batchSize) {
                     val batch = memory.sample(batchSize)
                     val targets = mutableListOf<DoubleArray>()
                     val outputs = mutableListOf<DoubleArray>()
 
                     for (experience in batch) {
-                        val nextQValues = model.predict(experience.nextState)
+                        val nextQValues = targetModel.predict(experience.nextState)
                         val nextAction = nextQValues.withIndex().maxByOrNull { it.value }?.index!!
 
                         val target = experience.reward + gamma * nextQValues[nextAction]
@@ -66,12 +73,16 @@ class QLearning<E : Enum<E>>(
 
                         targets.add(output)
                         outputs.add(model.predict(experience.state))
+
+                        if (debug) {
+                            println("Experience: ${experience.state} | Action: ${experience.action} | Target: $target | Output: ${output.joinToString(", ")}")
+                        }
                     }
 
                     model.optimizer.minimize(model, targets, outputs)
 
                     for (i in targets.indices) {
-                        totalLoss += model.loss.averageLoss(outputs[i], targets[i])
+                        totalLoss += model.loss.lossCalcul(outputs[i][batch[i].action], targets[i][batch[i].action])
                     }
                     nbIteration += batchSize
                 }
@@ -81,12 +92,21 @@ class QLearning<E : Enum<E>>(
                     break
                 }
             }
-            if (epsilon > epsilonEnd) epsilon *= epsilonDecay
-            lossChart[epoch] = totalLoss / nbIteration
-            println("Epoch: %d | Training Loss: %10.4f".format(epoch, totalLoss / nbIteration))
+
+            if (epoch % 10 == 0) {
+                targetModel.copyWeightsFrom(model)
+            }
+
+            if (epsilon > epsilonEnd) {
+                epsilon *= epsilonDecay
+            }
+
+            lossChart[epoch] = if (nbIteration > 0) totalLoss / nbIteration else 0.0
+            println("Epoch: %d | Training Loss: %10.4f".format(epoch, lossChart[epoch]!!))
         }
         Chart.lineChart(lossChart, "Model loss", "Epoch", "Loss", Color.BLUE, "src/main/resources/plots")
     }
+
 
 
     override fun test(model: NeuralNetwork) {
