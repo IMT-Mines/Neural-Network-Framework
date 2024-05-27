@@ -8,7 +8,7 @@ import kotlin.math.sqrt
 abstract class Optimizer {
 
     private val threadsThreshold: Int = 2
-    private val threadPool = Executors.newFixedThreadPool(512)
+    private val threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() - 1)
 
     class Gradients(val weightGradients: Array<Array<DoubleArray>>, val biasGradients: Array<DoubleArray>)
 
